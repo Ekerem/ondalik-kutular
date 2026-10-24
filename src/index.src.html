@@ -169,7 +169,7 @@ h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);let
 
 <script>/*__THREE__*/</script>
 <script>
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 (function(){
 'use strict';
@@ -493,9 +493,9 @@ Object.entries(DIV).forEach(([k, z]) => {
     g.setLineDash([]); g.font = `800 48px ${FONT}`; g.textAlign = 'center'; g.fillStyle = '#ffd43b'; g.fillText('ÇARPANLAR', w / 2, h - 34);
   });
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 3.8), new THREE.MeshBasicMaterial({ map: dt, transparent: true, depthWrite: false }));
-  plate.rotation.x = -Math.PI / 2; plate.position.set(9.3, .012, .25); divGroup.add(plate);
+  plate.rotation.x = -Math.PI / 2; plate.position.set(-9.3, .012, -.9); divGroup.add(plate);
 })();
-const DEPOT = [[8.4, -.7, 1], [10.2, -.7, 1], [8.4, 1.0, 2], [10.2, 1.0, 2]];
+const DEPOT = [[-10.2, -1.85, 1], [-8.4, -1.85, 1], [-10.2, -.15, 2], [-8.4, -.15, 2]];
 const screenCanvas = document.createElement('canvas'); screenCanvas.width = 1024; screenCanvas.height = 512;
 const screenTex = new THREE.CanvasTexture(screenCanvas); screenTex.encoding = THREE.sRGBEncoding;
 screenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -637,7 +637,7 @@ function freeSpot(minDist = 2.3, avoidPlayer = true){
     if(G.boxes.some(b => b.state === 'ground' && b.mesh.position.distanceTo(new THREE.Vector3(p.x, b.mesh.position.y, p.z)) < minDist)) continue;
     if(avoidPlayer && Math.hypot(p.x - hero.position.x, p.z - hero.position.z) < 2) continue;
     if(Math.hypot(p.x - LAIR.x, p.z - LAIR.z) < 2.6) continue;
-    if(G.game === 'div' && p.x > 6.6 && p.z < 2.8) continue;
+    if(G.game === 'div' && p.x < -6.6 && p.z < 1.4) continue;
     return p;
   }
   return new THREE.Vector3(ri(-80, 80) / 10, 0, ri(0, 50) / 10);
