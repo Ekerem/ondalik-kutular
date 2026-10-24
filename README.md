@@ -23,6 +23,6 @@ Her seviyede 5 kutu, sayılar her oyunda rastgele üretilir. Hatasız: ★★★
 - `.github/workflows/pages.yml` — GitHub Pages yayını, `apk.yml` — `v*` etiketiyle APK derleyip Release'e yükler.
 
 ## Yeni sürüm
-`src/index.src.html` içindeki `APP_VERSION` ve `version.json` aynı anda artırılır, `python3 tools/build.py` çalıştırılır, `v1.0.1` gibi etiketle release açılır.
+`src/index.src.html` içindeki `APP_VERSION` ve `version.json` aynı anda artırılır, `python3 tools/build.py` çalıştırılır ve `main`'e gönderilir. `version.json` değiştiği için APK iş akışı kendiliğinden çalışır ve `v<sürüm>` etiketli release'i oluşturur.
 
 Made by Us
