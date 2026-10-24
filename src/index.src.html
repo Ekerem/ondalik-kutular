@@ -39,6 +39,7 @@ button{font-family:var(--font);cursor:pointer;border:none;color:inherit}
   max-width:min(92vw,560px);text-align:center;font-size:17px;font-weight:700;padding:10px 18px;border-radius:16px;
   background:var(--panel-solid);border:2px solid var(--line);opacity:0;transition:opacity .25s, transform .25s;}
 #toast.show{opacity:1}
+@media (min-width:641px){ #toast{top:auto;bottom:calc(70px + env(safe-area-inset-bottom))} }
 #toast.bad{border-color:var(--danger);color:#ffe3e6}
 #toast.good{border-color:var(--accent2);color:#e3ffe9}
 #hint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
@@ -59,7 +60,7 @@ button{font-family:var(--font);cursor:pointer;border:none;color:inherit}
 #act.place{background:radial-gradient(circle at 35% 30%,#a6ffbf,#36d36a 60%,#1c9a45);color:#06331a;box-shadow:0 6px 0 #11692e,0 10px 24px rgba(0,0,0,.4)}
 
 /* Ekranlar */
-.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;touch-action:pan-y;
   background:radial-gradient(ellipse at 50% 30%,rgba(40,52,120,.75),rgba(6,9,26,.92));z-index:5;overflow:auto}
 .screen.on{display:flex}
 .card{background:var(--panel-solid);border:1px solid var(--line);border-radius:26px;padding:26px 26px 22px;
@@ -67,7 +68,14 @@ button{font-family:var(--font);cursor:pointer;border:none;color:inherit}
 h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);letter-spacing:.5px;
   text-shadow:0 4px 0 #8a4a00}
 .sub{color:var(--muted);font-size:17px;margin:10px 0 18px;line-height:1.35}
-.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.mode{background:#18204b;border:1px solid var(--line);border-radius:20px;padding:12px 12px 14px;text-align:left;margin-top:12px}
+.mode-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 4px 10px}
+.mode-h h2{margin:0;font-size:26px;line-height:1;color:#fff}
+.mode-h span{color:var(--muted);font-size:15px;font-weight:500}
+.mode.div .mode-h h2{color:#7df9ff}
+.mode.sort .mode-h h2{color:var(--accent)}
+.screen .card.menu{width:min(700px,100%);margin:auto}
 .lv{background:#1f2858;border:2px solid var(--line);border-radius:16px;padding:10px 4px 8px;font-weight:800;font-size:24px;
   display:flex;flex-direction:column;align-items:center;gap:2px}
 .lv span{font-size:12px;font-weight:600;color:var(--muted);line-height:1.15}
@@ -91,8 +99,13 @@ h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);let
   font-family:var(--font);font-weight:600;letter-spacing:.3px}
 @media (max-width:640px){
   #goal{display:none}
-  #lvl{font-size:14px} #lvl small{font-size:12px}
+  #lvl{font-size:14px;max-width:calc(100vw - 210px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #lvl small{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+  #upd span{display:none}
+  #topr{gap:6px} .ib{min-width:34px;height:34px;padding:0 8px}
+  #toast{font-size:15px}
   .levels{grid-template-columns:repeat(3,1fr)}
+  .mode-h h2{font-size:22px}
   #act{width:100px;height:100px;font-size:18px}
   #joy{width:120px;height:120px}
 }
@@ -108,7 +121,7 @@ h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);let
     <div id="miss" class="ib" title="Hata sayısı">✖ 0</div>
     <button id="mute" class="ib" title="Ses">🔊</button>
     <button id="menuBtn" class="ib" title="Menü">☰</button>
-    <button id="upd" class="ib" title="Güncelle">🔄 Güncelle</button>
+    <button id="upd" class="ib" title="Güncelle">🔄 <span>Güncelle</span></button>
   </div>
   <div id="toast"></div>
   <div id="joy"><div id="knob"></div></div>
@@ -117,12 +130,18 @@ h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);let
 </div>
 
 <div id="menu" class="screen on">
-  <div class="card">
+  <div class="card menu">
     <h1>Ondalık Kutular</h1>
-    <p class="sub">Uzay gemisindeki kutuları taşı, sayılarını <b style="color:#fff">küçükten büyüğe</b> sırala.<br>Yanlış yere koyarsan yeşil canavar seni yakalayıp fırlatır!</p>
-    <div class="how"><div>🕹️ Yürü</div><div>📦 Kutuya yaklaş → AL</div><div>🟡 Yuvaya götür → YERLEŞTİR</div></div>
-    <div class="levels" id="levelGrid"></div>
-    <div class="row"><button class="big" id="startBtn">▶ Başla</button></div>
+    <p class="sub">Uzay gemisinde kutuları taşı, görevi tamamla.<br>Yanlış yaparsan yeşil canavar seni yakalayıp fırlatır!</p>
+    <div class="how"><div>🕹️ Yürü</div><div>📦 Kutuya yaklaş → AL</div><div>🟡 Parlayan yere götür → YERLEŞTİR</div></div>
+    <section class="mode sort">
+      <div class="mode-h"><h2>Sıralama</h2><span>Ondalık sayıları küçükten büyüğe sırala</span></div>
+      <div class="levels" id="gridSort"></div>
+    </section>
+    <section class="mode div">
+      <div class="mode-h"><h2>Bölme</h2><span>Pay ve paydanın virgülünü aynı miktar kaydır, sonra böl</span></div>
+      <div class="levels" id="gridDiv"></div>
+    </section>
   </div>
 </div>
 
@@ -150,7 +169,7 @@ h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);let
 
 <script>/*__THREE__*/</script>
 <script>
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 
 (function(){
 'use strict';
@@ -197,7 +216,9 @@ const SFX = {
   whoosh(){ noise(.7, .25, 3200, 400); },
   thud(){ tone(130, .3, 'sine', .32, 0, 45); noise(.25, .22, 700, 90); },
   win(){ [523, 659, 784, 659, 784, 1047].forEach((f, i) => tone(f, .24, 'triangle', .14, i * .11)); },
-  step(){ tone(170 + Math.random() * 50, .05, 'triangle', .025); }
+  step(){ tone(170 + Math.random() * 50, .05, 'triangle', .025); },
+  shift(){ tone(420, .16, 'square', .06, 0, 1300); tone(1300, .12, 'triangle', .08, .14); },
+  press(){ tone(160, .1, 'square', .08, 0, 90); }
 };
 
 /* ================= SEVİYELER ================= */
@@ -207,7 +228,7 @@ function uniq5(fn){
   for(let k = 0; k < 500; k++){ const a = fn(); if(new Set(a).size === 5) return a; }
   return [100, 200, 300, 400, 500];
 }
-const LEVELS = [
+const SORT_LEVELS = [
   { name: 'Onda birler', ex: '0,3 · 0,7',
     tip: 'Onda birler basamağına bak: rakamı büyük olan sayı daha büyüktür.',
     gen: () => uniq5(() => { const s = new Set(); while(s.size < 5) s.add(ri(1, 9) * 100); return [...s]; }) },
@@ -224,6 +245,36 @@ const LEVELS = [
     tip: 'Önce tam kısma bak, sonra basamakları eşitle: 0,3 = 0,300 ve 0,35 = 0,350.',
     gen: () => uniq5(() => { const d = ri(1, 8), e = ri(1, 9); return [d * 100 + e, d * 100 + e * 10, d * 100, 1000 + d * 10, 1000 + d * 100 + e]; }) }
 ];
+// Bölme soruları: P ve D binde bir cinsinden (1,2 → 1200). Sonuç r da binde bir cinsinden.
+function qset(gen){
+  const seen = new Set(), out = [];
+  for(let k = 0; k < 600 && out.length < 5; k++){ const q = gen(); const key = q.P + '/' + q.D;
+    if(!seen.has(key)){ seen.add(key); q.r = q.P * 1000 / q.D; out.push(q); } }
+  return out;
+}
+const DIV_LEVELS = [
+  { name: 'Doğal ÷ onda bir', ex: '6 ÷ 0,2',
+    tip: 'Paydadaki virgülü kaldırmak için ×10 yeter. Paya da ×10 uygula: 6 → 60.',
+    gen: () => qset(() => { for(;;){ const a = ri(1, 4), d = ri(1, 5); if((a * 10) % d === 0 && a * 10 / d <= 40) return { P: a * 1000, D: d * 100 }; } }) },
+  { name: 'Onda bir ÷ onda bir', ex: '1,2 ÷ 0,4',
+    tip: 'İkisinde de virgülden sonra bir basamak var: ikisine de ×10 uygula. 1,2 ÷ 0,4 = 12 ÷ 4.',
+    gen: () => qset(() => { for(;;){ const d = ri(2, 9), q = ri(2, 9); if(q * d <= 60 && (q * d) % 10) return { P: q * d * 100, D: d * 100 }; } }) },
+  { name: 'Yüzde birler', ex: '0,24 ÷ 0,06',
+    tip: 'Virgülden sonra iki basamak var: ikisine de ×100 uygula. 0,24 ÷ 0,06 = 24 ÷ 6.',
+    gen: () => qset(() => { for(;;){ const d = ri(2, 9), q = ri(2, 9); if(q * d <= 60 && (q * d) % 10) return { P: q * d * 10, D: d * 10 }; } }) },
+  { name: 'Farklı basamaklar', ex: '1,5 ÷ 0,03',
+    tip: 'Paydaya göre kaydır: 0,03 için ×100. Paya da ×100 uygula, gerekirse sona 0 ekle: 1,5 → 150.',
+    gen: () => qset(() => { for(;;){ const d = ri(2, 9), q = ri(1, 5) * 10; if(q * d <= 300 && (q * d) % 100) return { P: q * d * 10, D: d * 10 }; } }) },
+  { name: 'Ondalıklı sonuç', ex: '0,5 ÷ 0,2',
+    tip: 'Önce ikisini aynı miktar kaydır, sonra böl: 0,5 ÷ 0,2 = 5 ÷ 2 = 2,5.',
+    gen: () => qset(() => { for(;;){ const B = [2, 4, 5][ri(0, 2)], A = ri(1, 19), k = ri(1, 2);
+      if(A % B === 0 || (B === 4 && A % 2)) continue; return { P: A * 1000 / 10 ** k, D: B * 1000 / 10 ** k }; } }) }
+];
+const MODES = {
+  sort: { title: 'Sıralama', levels: SORT_LEVELS, key: 'ok-stars', goal: 'Kutuları <b>küçükten büyüğe</b> sırala!' },
+  div: { title: 'Bölme', levels: DIV_LEVELS, key: 'ok-stars-div', goal: 'Pay ve paydayı <b>aynı</b> miktar kaydır, sonra böl!' }
+};
+function mrep(v){ let m = v, e = 3; while(e > 0 && m % 10 === 0){ m /= 10; e--; } return { m, e }; }
 function fmt(v){
   const neg = v < 0, a = Math.abs(v), w = Math.floor(a / 1000);
   const f = String(a % 1000).padStart(3, '0').replace(/0+$/, '');
@@ -262,6 +313,8 @@ function canvasTex(w, h, draw, repeat){
 function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r);
   g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 const std = (color, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: .55, metalness: .1 }, o));
+const sortGroup = new THREE.Group(), divGroup = new THREE.Group();
+scene.add(sortGroup, divGroup); divGroup.visible = false;
 
 /* ---------- Oda (uzay gemisi) ---------- */
 const ROOM = { w: 26, d: 18 };
@@ -325,7 +378,7 @@ const BOUND = { x: 11.8, zMin: -7.6, zMax: 7.4 };
     g.beginPath(); g.moveTo(610, 40); g.lineTo(645, 66); g.lineTo(610, 92); g.stroke();
   });
   const banner = new THREE.Mesh(new THREE.PlaneGeometry(9, 1.125), new THREE.MeshBasicMaterial({ map: bannerTex }));
-  banner.position.set(0, 1.55, -ROOM.d / 2 + .02); scene.add(banner);
+  banner.position.set(0, 1.55, -ROOM.d / 2 + .02); sortGroup.add(banner);
 
   // Konsollar
   const conMat = std(0x343f6c, { metalness: .4 });
@@ -351,7 +404,7 @@ const PAD_Z = -5.2, PAD_X = [-6, -3, 0, 3, 6];
     g.beginPath(); g.moveTo(10, 36); g.lineTo(930, 36); g.lineTo(930, 12); g.lineTo(1014, 48); g.lineTo(930, 84); g.lineTo(930, 60); g.lineTo(10, 60); g.closePath(); g.fill();
   });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(15.5, 1.45), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
-  m.rotation.x = -Math.PI / 2; m.position.set(0, .015, PAD_Z + 1.6); scene.add(m);
+  m.rotation.x = -Math.PI / 2; m.position.set(0, .015, PAD_Z + 1.6); sortGroup.add(m);
 })();
 
 /* ---------- Yuvalar ---------- */
@@ -365,17 +418,17 @@ const pads = PAD_X.map((x, i) => {
     g.fillText(String(i + 1), 128, 140);
   });
   const mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.1, .16, 48), std(0x5b6798, { metalness: .5 }));
-  mesh.position.set(x, .08, PAD_Z); mesh.receiveShadow = true; scene.add(mesh);
+  mesh.position.set(x, .08, PAD_Z); mesh.receiveShadow = true; sortGroup.add(mesh);
   const face = new THREE.Mesh(new THREE.CircleGeometry(.99, 48), std(0xffffff, { map: top }));
-  face.rotation.x = -Math.PI / 2; face.position.set(x, .162, PAD_Z); face.receiveShadow = true; scene.add(face);
+  face.rotation.x = -Math.PI / 2; face.position.set(x, .162, PAD_Z); face.receiveShadow = true; sortGroup.add(face);
   const ring = new THREE.Mesh(new THREE.RingGeometry(1.12, 1.32, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .35, depthWrite: false }));
-  ring.rotation.x = -Math.PI / 2; ring.position.set(x, .02, PAD_Z); scene.add(ring);
+  ring.rotation.x = -Math.PI / 2; ring.position.set(x, .02, PAD_Z); sortGroup.add(ring);
   // Etiket
   if(i === 0 || i === 4){
     const lt = canvasTex(256, 64, (g) => { g.font = `800 44px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillStyle = i === 0 ? '#7df9ff' : '#ffb23e'; g.fillText(i === 0 ? 'en küçük' : 'en büyük', 128, 34); });
     const lab = new THREE.Mesh(new THREE.PlaneGeometry(2.2, .55), new THREE.MeshBasicMaterial({ map: lt, transparent: true, depthWrite: false }));
-    lab.rotation.x = -Math.PI / 2; lab.position.set(x, .02, PAD_Z - 1.55); scene.add(lab);
+    lab.rotation.x = -Math.PI / 2; lab.position.set(x, .02, PAD_Z - 1.55); sortGroup.add(lab);
   }
   return { index: i, x, z: PAD_Z, mesh, ring, box: null, flash: 0, flashColor: 0xffffff };
 });
@@ -394,6 +447,60 @@ const LAIR = new THREE.Vector3(-10.2, 0, -5.6);
   const m = new THREE.Mesh(new THREE.CircleGeometry(1.9, 48), new THREE.MeshStandardMaterial({ map: t, roughness: .9 }));
   m.rotation.x = -Math.PI / 2; m.position.set(LAIR.x, .012, LAIR.z); m.receiveShadow = true; scene.add(m);
 })();
+
+/* ---------- Bölme makinesi ve yuvaları ---------- */
+const DIV = {
+  pay:   { x: -2.6, z: -5.75, label: 'PAY',    col: '#7df9ff' },
+  payda: { x: -2.6, z: -2.85, label: 'PAYDA',  col: '#7df9ff' },
+  onay:  { x: 1.7,  z: -4.3,  label: 'ONAYLA', col: '#ffffff' },
+  sonuc: { x: 5.8,  z: -4.3,  label: 'SONUÇ',  col: '#46e07a' }
+};
+Object.entries(DIV).forEach(([k, z]) => {
+  const btn = k === 'onay';
+  const tex = canvasTex(256, 256, (g, w, h) => {
+    const grd = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+    if(btn){ grd.addColorStop(0, '#ff6a78'); grd.addColorStop(1, '#c42639'); }
+    else { grd.addColorStop(0, '#2b3570'); grd.addColorStop(1, '#151b40'); }
+    g.fillStyle = grd; g.fillRect(0, 0, w, h);
+    if(!btn){ g.strokeStyle = z.col; g.globalAlpha = .55; g.setLineDash([18, 12]); g.lineWidth = 8;
+      g.beginPath(); g.arc(128, 128, 100, 0, 7); g.stroke(); g.setLineDash([]); g.globalAlpha = 1; }
+    let size = 64; g.font = `800 ${size}px ${FONT}`;
+    while(g.measureText(z.label).width > 190 && size > 30){ size -= 4; g.font = `800 ${size}px ${FONT}`; }
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = btn ? '#fff' : z.col; g.fillText(z.label, 128, 136);
+  });
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(btn ? .82 : 1, btn ? .95 : 1.1, btn ? .32 : .16, 48),
+    std(btn ? 0x8e1f2e : 0x5b6798, { metalness: .5 }));
+  mesh.position.set(z.x, btn ? .16 : .08, z.z); mesh.receiveShadow = mesh.castShadow = true; divGroup.add(mesh);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(btn ? .81 : .99, 48), std(0xffffff, { map: tex, roughness: btn ? .35 : .55 }));
+  face.rotation.x = -Math.PI / 2; face.position.set(z.x, btn ? .322 : .162, z.z); divGroup.add(face);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.12, 1.32, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .35, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.position.set(z.x, .02, z.z); divGroup.add(ring);
+  Object.assign(z, { key: k, mesh, face, ring, flash: 0, flashColor: 0xffffff });
+});
+(function divDecor(){
+  // Pay ile payda arasındaki kesir çizgisi
+  const bar = new THREE.Mesh(new THREE.PlaneGeometry(2.7, .18), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  bar.rotation.x = -Math.PI / 2; bar.position.set(DIV.pay.x, .02, (DIV.pay.z + DIV.payda.z) / 2); divGroup.add(bar);
+  // Makine gövdesi
+  const body = new THREE.Mesh(new THREE.BoxGeometry(9.4, 4.7, .8), std(0x343f6c, { metalness: .45 }));
+  body.position.set(0, 2.35, -8.6); body.castShadow = body.receiveShadow = true; divGroup.add(body);
+  const top = new THREE.Mesh(new THREE.BoxGeometry(9.5, .14, .9), std(0x7df9ff, { emissive: 0x2ab8ff, emissiveIntensity: .7 }));
+  top.position.set(0, 4.72, -8.6); divGroup.add(top);
+  // Çarpan deposu
+  const dt = canvasTex(512, 464, (g, w, h) => {
+    g.fillStyle = 'rgba(255,212,59,.10)'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#ffd43b'; g.lineWidth = 10; g.setLineDash([26, 16]); rr(g, 10, 10, w - 20, h - 20, 30); g.stroke();
+    g.setLineDash([]); g.font = `800 48px ${FONT}`; g.textAlign = 'center'; g.fillStyle = '#ffd43b'; g.fillText('ÇARPANLAR', w / 2, h - 34);
+  });
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 3.8), new THREE.MeshBasicMaterial({ map: dt, transparent: true, depthWrite: false }));
+  plate.rotation.x = -Math.PI / 2; plate.position.set(9.3, .012, .25); divGroup.add(plate);
+})();
+const DEPOT = [[8.4, -.7, 1], [10.2, -.7, 1], [8.4, 1.0, 2], [10.2, 1.0, 2]];
+const screenCanvas = document.createElement('canvas'); screenCanvas.width = 1024; screenCanvas.height = 512;
+const screenTex = new THREE.CanvasTexture(screenCanvas); screenTex.encoding = THREE.sRGBEncoding;
+screenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(8.8, 4.4), new THREE.MeshBasicMaterial({ map: screenTex }));
+screenMesh.position.set(0, 2.38, -8.19); divGroup.add(screenMesh);
 
 /* ---------- Kahraman (özgün robot astronot "Bıdık") ---------- */
 function makeHero(){
@@ -479,14 +586,14 @@ function boxTex(text, color){
     g.fillStyle = '#1b1f3a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 128, 136);
   });
 }
-function makeBox(value, color){
-  const tex = boxTex(fmt(value), color);
+function makeBox(value, color, label, kind = 'num'){
+  const tex = boxTex(label || fmt(value), color);
   const mesh = new THREE.Mesh(boxGeo, std(0xffffff, { map: tex, roughness: .6, metalness: .05 }));
   mesh.castShadow = true; mesh.receiveShadow = true;
   const ring = new THREE.Mesh(new THREE.RingGeometry(.85, 1.02, 32), new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2; scene.add(ring);
   scene.add(mesh);
-  return { value, mesh, ring, state: 'ground', pad: null, locked: false, home: new THREE.Vector3() };
+  return { value, kind, mesh, ring, state: 'ground', pad: null, locked: false, home: new THREE.Vector3() };
 }
 
 /* ---------- Konfeti ---------- */
@@ -505,9 +612,12 @@ function burst(pos, colors, n = 40){
 
 /* ================= OYUN DURUMU ================= */
 const G = {
+  game: 'sort', run: 0,
   mode: 'menu', level: 0, values: [], sorted: [], boxes: [], carrying: null, mistakes: 0,
   dizzy: 0, frozen: false, shake: 0, facing: new THREE.Vector3(0, 0, 1), stepT: 0, walkT: 0
 };
+const DS = { qs: [], qi: 0, s: { pay: 0, payda: 0 }, phase: 'shift', warned: false, solved: [] };
+const curLevels = () => MODES[G.game].levels;
 const tweens = [];
 function tween(dur, update, done){ tweens.push({ t: 0, dur, update, done }); }
 const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
@@ -516,6 +626,9 @@ function clearLevel(){
   G.boxes.forEach(b => { scene.remove(b.mesh); scene.remove(b.ring); b.mesh.material.map.dispose(); b.mesh.material.dispose(); });
   G.boxes = []; G.carrying = null;
   pads.forEach(p => { p.box = null; p.flash = 0; });
+  Object.values(DIV).forEach(z => z.flash = 0);
+  DS.phase = 'shift'; DS.s = { pay: 0, payda: 0 };
+  hero.visible = true; hero.rotation.x = hero.rotation.z = 0;
   tweens.length = 0;
 }
 function freeSpot(minDist = 2.3, avoidPlayer = true){
@@ -524,55 +637,237 @@ function freeSpot(minDist = 2.3, avoidPlayer = true){
     if(G.boxes.some(b => b.state === 'ground' && b.mesh.position.distanceTo(new THREE.Vector3(p.x, b.mesh.position.y, p.z)) < minDist)) continue;
     if(avoidPlayer && Math.hypot(p.x - hero.position.x, p.z - hero.position.z) < 2) continue;
     if(Math.hypot(p.x - LAIR.x, p.z - LAIR.z) < 2.6) continue;
+    if(G.game === 'div' && p.x > 6.6 && p.z < 2.8) continue;
     return p;
   }
   return new THREE.Vector3(ri(-80, 80) / 10, 0, ri(0, 50) / 10);
 }
-function startLevel(i){
+function startLevel(game, i){
   clearLevel();
-  G.level = i; G.mistakes = 0; G.mode = 'play'; G.dizzy = 0; G.frozen = false;
+  G.game = game; G.level = i; G.mistakes = 0; G.mode = 'play'; G.dizzy = 0; G.frozen = false; G.run++;
   hero.position.set(0, 0, 1.2); hero.rotation.set(0, Math.PI, 0);
   monster.position.copy(LAIR); M.state = 'idle';
-  G.values = LEVELS[i].gen();
-  G.sorted = [...G.values].sort((a, b) => a - b);
-  const cols = [...BOX_COLORS].sort(() => Math.random() - .5);
-  G.values.forEach((v, k) => {
-    const b = makeBox(v, cols[k]);
-    G.boxes.push(b);
-    const p = freeSpot();
-    b.mesh.position.set(p.x, .55, p.z); b.mesh.rotation.y = (Math.random() - .5) * .5; b.home.copy(b.mesh.position);
-  });
-  $('#lvl').innerHTML = `Seviye ${i + 1}/5<small>${LEVELS[i].name}</small>`;
-  updateMiss();
+  sortGroup.visible = game === 'sort'; divGroup.visible = game === 'div';
+  if(game === 'sort'){
+    G.values = SORT_LEVELS[i].gen();
+    G.sorted = [...G.values].sort((a, b) => a - b);
+    const cols = [...BOX_COLORS].sort(() => Math.random() - .5);
+    G.values.forEach((v, k) => {
+      const b = makeBox(v, cols[k]);
+      G.boxes.push(b);
+      const p = freeSpot();
+      b.mesh.position.set(p.x, .55, p.z); b.mesh.rotation.y = (Math.random() - .5) * .5; b.home.copy(b.mesh.position);
+    });
+  } else {
+    DS.qs = DIV_LEVELS[i].gen(); DS.qi = 0; DS.solved = [];
+    DEPOT.forEach(([x, z, sh]) => {
+      const b = makeBox(sh, sh === 1 ? '#ffd43b' : '#b197fc', sh === 1 ? '×10' : '×100', 'mult');
+      G.boxes.push(b); b.mesh.position.set(x, .55, z); b.home.copy(b.mesh.position);
+    });
+    startQuestion();
+  }
+  updateMiss(); updateLvl();
+  $('#goal').innerHTML = MODES[game].goal; $('#goal').style.display = game === 'div' ? 'none' : '';
   ['#menu', '#done'].forEach(s => $(s).classList.remove('on'));
   $('#hud').classList.add('on');
-  toast(`Seviye ${i + 1}: ${LEVELS[i].name}. Kutuları küçükten büyüğe sırala!`, '', 2600);
+  toast(`${MODES[game].title} ${i + 1}: ${curLevels()[i].name}`, '', 2400);
+}
+function updateLvl(){
+  let small = curLevels()[G.level].name;
+  if(G.game === 'div') small += ` · Soru ${Math.min(DS.qi + 1, 5)}/5`;
+  $('#lvl').innerHTML = `${MODES[G.game].title} ${G.level + 1}/5<small>${small}</small>`;
+}
+
+/* ---------- Bölme: soru akışı ---------- */
+function curQ(){ return DS.qs[DS.qi]; }
+function shifted(v, s){
+  // v: binde bir; s: kaç basamak kaydırıldı. Sona eklenen sıfırları ayrı döndürür.
+  const { m, e } = mrep(v);
+  const digits = String(m).padStart(e + 1, '0');
+  let ne = e - s, added = '';
+  if(ne < 0){ added = '0'.repeat(-ne); ne = 0; }
+  const full = digits + added;
+  const ip = full.slice(0, full.length - ne).replace(/^0+(?=\d)/, ''), fp = full.slice(full.length - ne);
+  return { main: ip.slice(0, ip.length - added.length), added, frac: fp ? ',' + fp : '', natural: ne === 0,
+    text: ip + (fp ? ',' + fp : '') };
+}
+function drawNum(g, n, x, y, size, color){
+  g.font = `800 ${size}px ${FONT}`; g.textBaseline = 'middle'; g.textAlign = 'left';
+  const w1 = g.measureText(n.main).width, w2 = g.measureText(n.added).width, w3 = g.measureText(n.frac).width;
+  let cx = x - (w1 + w2 + w3) / 2;
+  g.fillStyle = color; g.fillText(n.main, cx, y); cx += w1;
+  g.fillStyle = '#ffb23e'; g.fillText(n.added, cx, y); cx += w2;
+  g.fillStyle = color; g.fillText(n.frac, cx, y);
+  return w1 + w2 + w3;
+}
+function drawScreen(){
+  const g = screenCanvas.getContext('2d'), W = 1024, H = 512, q = curQ();
+  const grd = g.createLinearGradient(0, 0, 0, H); grd.addColorStop(0, '#0d1433'); grd.addColorStop(1, '#141d4a');
+  g.fillStyle = '#05081a'; g.fillRect(0, 0, W, H);
+  rr(g, 8, 8, W - 16, H - 16, 28); g.fillStyle = grd; g.fill(); g.lineWidth = 8; g.strokeStyle = '#7df9ff'; g.stroke();
+  if(!q){ screenTex.needsUpdate = true; return; }
+  g.textBaseline = 'middle';
+  g.font = `700 32px ${FONT}`; g.textAlign = 'left'; g.fillStyle = '#aab3dd'; g.fillText(`Soru ${DS.qi + 1}/5`, 40, 52);
+  g.textAlign = 'right'; g.fillStyle = DS.warned ? '#ff5d6c' : '#46e07a';
+  g.fillText(`Yanlış kaydırma hakkı: ${DS.warned ? 0 : 1}`, W - 40, 52);
+  // Sol: ilk hâli, sağ: kaydırılmış hâli
+  const p0 = shifted(q.P, 0), d0 = shifted(q.D, 0), p1 = shifted(q.P, DS.s.pay), d1 = shifted(q.D, DS.s.payda);
+  const frac = (pn, dn, cx, col) => {
+    const w = Math.max(drawNum(g, pn, cx, 160, 92, col), drawNum(g, dn, cx, 300, 92, col));
+    g.strokeStyle = col; g.lineWidth = 8; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(cx - w / 2 - 18, 230); g.lineTo(cx + w / 2 + 18, 230); g.stroke();
+  };
+  frac(p0, d0, 260, '#ffffff');
+  frac(p1, d1, 770, '#ffffff');
+  const eq = DS.s.pay === DS.s.payda;
+  g.textAlign = 'center'; g.font = `800 140px ${FONT}`; g.fillStyle = eq ? '#46e07a' : '#ff5d6c';
+  g.fillText(eq ? '=' : '≠', 515, 228);
+  g.font = `700 28px ${FONT}`; g.fillStyle = '#aab3dd';
+  const mt = s => s ? '×' + 10 ** s : '—';
+  g.textAlign = 'left'; g.fillText(mt(DS.s.pay), 905, 160); g.fillText(mt(DS.s.payda), 905, 300);
+  // Alt satır
+  let msg = '', col = '#ffffff', size = 40;
+  if(DS.phase === 'shift'){
+    if(!eq){ msg = 'Pay ve payda aynı miktar kaydırılmalı!'; col = '#ff5d6c'; }
+    else if(DS.s.pay && p1.natural && d1.natural){ msg = 'Hazır! ONAYLA butonuna bas.'; col = '#46e07a'; }
+    else if(DS.s.pay){ msg = 'Aynı kaydırdın, ama hâlâ virgül var. Devam!'; col = '#ffd43b'; }
+    else msg = 'Çarpan kutularını PAY ve PAYDA yuvalarına götür';
+  } else if(DS.phase === 'answer'){ msg = `${p1.text} ÷ ${d1.text} = ?`; col = '#ffd43b'; size = 60; }
+  else { msg = `${p1.text} ÷ ${d1.text} = ${fmt(q.r)}  ✓`; col = '#46e07a'; size = 60; }
+  g.textAlign = 'center'; g.font = `800 ${size}px ${FONT}`; g.fillStyle = col; g.fillText(msg, W / 2, 438);
+  screenTex.needsUpdate = true;
+}
+function startQuestion(){
+  DS.s = { pay: 0, payda: 0 }; DS.phase = 'shift'; DS.warned = false;
+  removeAnswers(); drawScreen(); updateLvl();
+}
+function removeAnswers(){
+  G.boxes = G.boxes.filter(b => {
+    if(b.kind !== 'ans') return true;
+    if(G.carrying === b) G.carrying = null;
+    scene.remove(b.mesh); scene.remove(b.ring); b.mesh.material.map.dispose(); b.mesh.material.dispose();
+    return false;
+  });
+  DIV.sonuc.flash = 0;
+}
+function answerOptions(r){
+  const out = [r];
+  const okv = v => Number.isInteger(v) && v > 0 && v < 100000 && !out.includes(v);
+  const near = r % 1000 ? [r + 1000, r - 1000, r + 500, r - 500] : [r + 1000, r - 1000, r * 2];
+  [[r * 10, r / 10], [r * 100, r / 100], near].forEach(group => {
+    group.sort(() => Math.random() - .5).forEach(v => { if(out.length < 5 && okv(v)) out.push(v); });
+  });
+  for(let k = 2; out.length < 5; k++) if(okv(r + k * 1000)) out.push(r + k * 1000);
+  return out.sort(() => Math.random() - .5);
+}
+function spawnAnswers(){
+  const cols = [...BOX_COLORS].sort(() => Math.random() - .5);
+  answerOptions(curQ().r).forEach((v, k) => {
+    const b = makeBox(v, cols[k], null, 'ans'); G.boxes.push(b);
+    const p = freeSpot(2.3, true); b.mesh.position.set(p.x, .55, p.z); b.home.copy(b.mesh.position);
+    b.state = 'moving'; b.mesh.scale.setScalar(.01);
+    tween(.35 + k * .08, kk => b.mesh.scale.setScalar(Math.max(.01, ease(kk))), () => { b.state = 'ground'; });
+  });
+}
+function applyMult(b, z){
+  if(DS.s[z.key] + b.value > 3){ toast('Bu kadar kaydırmaya gerek yok!', '', 1800); dropBox(b); return; }
+  G.carrying = null; b.state = 'moving';
+  const from = b.mesh.position.clone(), to = new THREE.Vector3(z.x, .45, z.z);
+  tween(.35, k => { b.mesh.position.lerpVectors(from, to, ease(k)); b.mesh.position.y += Math.sin(Math.PI * k) * .8; b.mesh.scale.setScalar(1 - k * .85); }, () => {
+    DS.s[z.key] += b.value; z.flash = .6; z.flashColor = 0xffe14d; SFX.shift(); drawScreen();
+    b.mesh.scale.setScalar(.01); b.mesh.position.copy(b.home);
+    tween(.3, k => b.mesh.scale.setScalar(Math.max(.01, k)), () => { b.state = 'ground'; });
+  });
+}
+function confirmShift(){
+  const q = curQ(), s = DS.s, z = DIV.onay; SFX.press();
+  const y0 = z.mesh.position.y, f0 = z.face.position.y;
+  tween(.25, k => { const d = Math.sin(Math.PI * k) * .12; z.mesh.position.y = y0 - d; z.face.position.y = f0 - d; });
+  if(!s.pay && !s.payda){ toast('Önce PAY ve PAYDA yuvalarına çarpan kutusu götür (×10 / ×100).', '', 2800); return; }
+  if(s.pay !== s.payda){
+    G.mistakes++; updateMiss(); SFX.wrong();
+    DIV.pay.flash = DIV.payda.flash = 1.4; DIV.pay.flashColor = DIV.payda.flashColor = 0xff3b4f;
+    const mt = n => n ? '×' + 10 ** n : 'hiç';
+    if(!DS.warned){
+      DS.warned = true;
+      toast(`Paya ${mt(s.pay)}, paydaya ${mt(s.payda)} uyguladın, kesrin değeri değişti! Son hakkın, kaydırmalar sıfırlandı.`, 'bad', 4200);
+      DS.s = { pay: 0, payda: 0 }; drawScreen();
+    } else {
+      drawScreen();
+      toast('İkinci yanlış kaydırma! Canavar geliyor! 👾', 'bad', 2400);
+      monsterAttack({ kick: true });
+    }
+    return;
+  }
+  const p1 = shifted(q.P, s.pay), d1 = shifted(q.D, s.payda);
+  if(!p1.natural || !d1.natural){
+    toast(`Aynı kaydırdın, güzel! Ama ${!d1.natural ? 'paydada' : 'payda'} hâlâ virgül var. Biraz daha kaydır.`, '', 3000); return;
+  }
+  DS.phase = 'answer'; SFX.ok(); drawScreen(); spawnAnswers();
+  burst(new THREE.Vector3(z.x, 1, z.z), [0x7df9ff, 0xffe14d], 18);
+  toast(`${p1.text} ÷ ${d1.text} = ? Doğru cevap kutusunu SONUÇ'a götür.`, 'good', 3200);
+}
+function placeAnswer(b){
+  const z = DIV.sonuc; G.carrying = null; b.state = 'moving';
+  const from = b.mesh.position.clone(), to = new THREE.Vector3(z.x, .71, z.z), run = G.run;
+  tween(.3, k => { b.mesh.position.lerpVectors(from, to, ease(k)); b.mesh.position.y += Math.sin(Math.PI * k) * .6; b.mesh.rotation.y *= .8; }, () => {
+    b.state = 'pad'; SFX.drop();
+    if(b.value === curQ().r){
+      b.locked = true; DS.phase = 'done'; z.flash = 99; z.flashColor = 0x46e07a;
+      SFX.ok(); burst(new THREE.Vector3(z.x, 1.4, z.z), [0x46e07a, 0xffe14d, 0x5aa9ff, 0xff6bd6], 34);
+      DS.solved.push(curQ()); drawScreen();
+      toast(['Harika! ✓', 'Doğru! ✓', 'Süper! ✓', 'Aferin! ✓'][ri(0, 3)], 'good', 1400);
+      setTimeout(() => {
+        if(G.run !== run || G.mode !== 'play') return;
+        z.flash = 0;
+        if(DS.qi >= DS.qs.length - 1){ removeAnswers(); levelComplete(); }
+        else { DS.qi++; startQuestion(); toast(`Soru ${DS.qi + 1}/5`, '', 1400); }
+      }, 1700);
+    } else {
+      G.mistakes++; updateMiss();
+      z.flash = 1.6; z.flashColor = 0xff3b4f; SFX.wrong();
+      toast(`${fmt(b.value)} değil! Canavar geliyor! 👾`, 'bad', 2200);
+      monsterAttack({ box: b });
+    }
+  });
 }
 function updateMiss(){ $('#miss').textContent = '✖ ' + G.mistakes; }
 
 /* ---------- Etkileşim ---------- */
-let nearBox = null, nearPad = null;
+let nearBox = null, nearPad = null, nearZone = null, nearOnay = false;
 function findTargets(){
-  nearBox = null; nearPad = null;
+  nearBox = null; nearPad = null; nearZone = null; nearOnay = false;
   if(G.mode !== 'play' || G.frozen || G.dizzy > 0) return;
-  const hp = hero.position;
+  const hp = hero.position, dist = (x, z) => Math.hypot(x - hp.x, z - hp.z);
   if(!G.carrying){
     let best = 1.8;
     G.boxes.forEach(b => { if(b.state !== 'ground') return;
-      const d = Math.hypot(b.mesh.position.x - hp.x, b.mesh.position.z - hp.z); if(d < best){ best = d; nearBox = b; } });
-  } else {
+      const d = dist(b.mesh.position.x, b.mesh.position.z); if(d < best){ best = d; nearBox = b; } });
+    if(G.game === 'div' && DS.phase === 'shift'){
+      const d = dist(DIV.onay.x, DIV.onay.z);
+      if(d < 1.7 && (!nearBox || d < best)){ nearOnay = true; nearBox = null; }
+    }
+  } else if(G.game === 'sort'){
     let best = 2.0;
-    pads.forEach(p => { if(p.box) return; const d = Math.hypot(p.x - hp.x, p.z - hp.z); if(d < best){ best = d; nearPad = p; } });
+    pads.forEach(p => { if(p.box) return; const d = dist(p.x, p.z); if(d < best){ best = d; nearPad = p; } });
+  } else {
+    const b = G.carrying;
+    const cands = b.kind === 'mult' && DS.phase === 'shift' ? [DIV.pay, DIV.payda] : b.kind === 'ans' && DS.phase === 'answer' ? [DIV.sonuc] : [];
+    let best = 2.0;
+    cands.forEach(z => { const d = dist(z.x, z.z); if(d < best){ best = d; nearZone = z; } });
   }
 }
 function action(){
   ac();
   if(G.mode !== 'play' || G.frozen || G.dizzy > 0) return;
   findTargets();
+  if(nearOnay){ confirmShift(); return; }
   if(!G.carrying && nearBox){
     const b = nearBox; b.state = 'carried'; G.carrying = b; SFX.pick();
   } else if(G.carrying && nearPad){
     placeOnPad(G.carrying, nearPad);
+  } else if(G.carrying && nearZone){
+    if(nearZone.key === 'sonuc') placeAnswer(G.carrying); else applyMult(G.carrying, nearZone);
   } else if(G.carrying){
     dropBox(G.carrying);
   }
@@ -610,18 +905,20 @@ function judge(b, pad){
     pad.flashColor = 0xff3b4f; pad.flash = 1.6;
     SFX.wrong();
     toast(`${fmt(b.value)} buraya ait değil! Canavar geliyor! 👾`, 'bad', 2200);
-    monsterAttack(b, pad);
+    monsterAttack({ box: b });
   }
 }
 
 /* ---------- Canavar saldırısı ---------- */
-const M = { state: 'idle', t: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), wrongBox: null, wrongPad: null };
-function monsterAttack(box, pad){
+const M = { state: 'idle', t: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), wrongBox: null, kick: false };
+function monsterAttack(opts = {}){
+  if(G.carrying){ dropBox(G.carrying); }
   G.frozen = true; G.mode = 'caught';
-  M.wrongBox = box; M.wrongPad = pad;
+  M.wrongBox = opts.box || null; M.kick = !!opts.kick;
   M.state = 'roar'; M.t = 0; SFX.roar();
 }
 function throwTarget(){
+  if(M.kick) return new THREE.Vector3(THREE.MathUtils.clamp(hero.position.x, -8, 8) * .5, 0, 17);
   let best = null, bestD = -1;
   for(let k = 0; k < 30; k++){
     const p = new THREE.Vector3(ri(-100, 100) / 10, 0, ri(5, 65) / 10);
@@ -670,25 +967,31 @@ function updateMonster(dt, time){
     if(k >= 1){
       M.state = 'throw'; M.t = 0; M.from.copy(hero.position); M.to.copy(throwTarget()); SFX.whoosh();
       // yanlış kutu yuvadan fırlar
-      const b = M.wrongBox, pad = M.wrongPad;
-      if(b){ pad.box = null; b.pad = null; b.state = 'moving';
+      const b = M.wrongBox;
+      if(b){ if(b.pad){ b.pad.box = null; b.pad = null; } b.locked = false; b.state = 'moving';
         const f = b.mesh.position.clone(), t = freeSpot(2.3, false);
         tween(.9, kk => { b.mesh.position.lerpVectors(f, new THREE.Vector3(t.x, .55, t.z), kk); b.mesh.position.y = THREE.MathUtils.lerp(f.y, .55, kk) + Math.sin(Math.PI * kk) * 3; b.mesh.rotation.x = kk * Math.PI * 2; },
           () => { b.mesh.rotation.x = 0; b.state = 'ground'; });
         M.wrongBox = null; }
     }
   } else if(M.state === 'throw'){
-    const k = Math.min(M.t / 1.15, 1);
+    const k = Math.min(M.t / (M.kick ? 1.5 : 1.15), 1);
     u.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * (2.65 - k * 2.3); a.rotation.x = -.4 + k * 1.4; });
     hero.position.lerpVectors(M.from, M.to, k);
-    hero.position.y = THREE.MathUtils.lerp(M.from.y, 0, k) + Math.sin(Math.PI * k) * 6.5;
+    hero.position.y = THREE.MathUtils.lerp(M.from.y, 0, k) + Math.sin(Math.PI * k) * (M.kick ? 9 : 6.5);
     hero.rotation.x = k * Math.PI * 4; hero.rotation.z = 0;
-    if(k >= 1){
+    if(k >= 1 && M.kick){
+      hero.rotation.x = 0; hero.visible = false; SFX.thud(); G.shake = .4;
+      G.mode = 'kicked'; M.state = 'return'; M.t = 0; M.kick = false;
+      toast('Canavar seni gemiden attı! Seviye baştan başlıyor…', 'bad', 2600);
+      const run = G.run;
+      setTimeout(() => { if(G.run === run && G.mode === 'kicked') startLevel(G.game, G.level); }, 2600);
+    } else if(k >= 1){
       hero.rotation.x = 0; hero.position.y = 0; SFX.thud(); G.shake = .55;
       burst(hero.position.clone().setY(.3), [0x8a93c0, 0xcfd6ff], 18);
       G.dizzy = 1.5; G.frozen = false; G.mode = 'play';
       M.state = 'return'; M.t = 0;
-      setTimeout(() => { if(G.mode === 'play') toast('İpucu: ' + LEVELS[G.level].tip, '', 4200); }, 500);
+      setTimeout(() => { if(G.mode === 'play') toast('İpucu: ' + curLevels()[G.level].tip, '', 4200); }, 500);
     }
   } else if(M.state === 'return'){
     u.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * .35; a.rotation.x = 0; });
@@ -705,16 +1008,18 @@ function levelComplete(){
   SFX.win();
   pads.forEach((p, i) => setTimeout(() => burst(new THREE.Vector3(p.x, 1.6, p.z), [0xffe14d, 0xff6bd6, 0x5aa9ff, 0x46e07a], 26), i * 120));
   const stars = G.mistakes === 0 ? 3 : G.mistakes <= 2 ? 2 : 1;
-  const best = store.get('ok-stars', [0, 0, 0, 0, 0]);
-  best[G.level] = Math.max(best[G.level] || 0, stars); store.set('ok-stars', best);
+  const key = MODES[G.game].key, best = store.get(key, [0, 0, 0, 0, 0]);
+  best[G.level] = Math.max(best[G.level] || 0, stars); store.set(key, best);
   setTimeout(() => {
-    const last = G.level === LEVELS.length - 1;
+    const last = G.level === curLevels().length - 1;
     $('#doneTitle').textContent = last ? 'Tebrikler! 🎉' : `Seviye ${G.level + 1} tamam!`;
     $('#doneStars').innerHTML = '<b>★</b>'.repeat(stars) + '★'.repeat(3 - stars);
     const total = best.reduce((a, b) => a + b, 0);
     $('#doneText').innerHTML = (G.mistakes === 0 ? 'Hiç hata yapmadın, canavar aç kaldı!' : `${G.mistakes} hata yaptın.`) +
-      (last ? `<br>Tüm seviyeleri bitirdin! Toplam yıldız: <b style="color:#ffd23f">${total} / 15</b>` : '');
-    $('#doneOrder').innerHTML = G.sorted.map(v => `<span>${fmt(v)}</span>`).join('<em>&lt;</em>');
+      (last ? `<br>${MODES[G.game].title} bölümünü bitirdin! Toplam yıldız: <b style="color:#ffd23f">${total} / 15</b>` : '');
+    $('#doneOrder').innerHTML = G.game === 'sort'
+      ? G.sorted.map(v => `<span>${fmt(v)}</span>`).join('<em>&lt;</em>')
+      : DS.solved.map(q => `<span>${fmt(q.P)} ÷ ${fmt(q.D)} = ${fmt(q.r)}</span>`).join('');
     $('#nextBtn').textContent = last ? '☰ Menü' : 'Sonraki seviye ▶';
     $('#done').classList.add('on'); $('#hud').classList.remove('on');
   }, 1300);
@@ -828,7 +1133,15 @@ function updateHighlights(dt, time){
     const target = b === nearBox ? .9 : 0; b.ring.material.opacity += (target - b.ring.material.opacity) * Math.min(1, dt * 12);
     b.ring.scale.setScalar(1 + Math.sin(time * 6) * .05);
   });
-  pads.forEach(p => {
+  if(G.game === 'div') Object.values(DIV).forEach(z => {
+    const active = z.key === 'sonuc' ? DS.phase !== 'shift' : DS.phase === 'shift';
+    let col = 0xffffff, op = active ? .4 : .1;
+    if(z.flash > 0){ z.flash -= dt; col = z.flashColor; op = .5 + Math.abs(Math.sin(time * 14)) * .5; }
+    else if(z === nearZone || (z.key === 'onay' && nearOnay)){ col = 0xffe14d; op = .95; }
+    else if(active && G.carrying && ((G.carrying.kind === 'mult' && z.key !== 'onay' && z.key !== 'sonuc') || (G.carrying.kind === 'ans' && z.key === 'sonuc'))){ op = .45 + Math.sin(time * 4) * .15; }
+    z.ring.material.color.setHex(col); z.ring.material.opacity = op;
+  });
+  if(G.game === 'sort') pads.forEach(p => {
     let col = 0xffffff, op = .3;
     if(p.box && p.box.locked){ col = 0x46e07a; op = .9; }
     if(p.flash > 0){ p.flash -= dt; col = p.flashColor; op = .5 + Math.abs(Math.sin(time * 14)) * .5; }
@@ -837,11 +1150,12 @@ function updateHighlights(dt, time){
   });
   const act = $('#act');
   let label = 'AL', cls = '';
-  if(G.carrying){ label = nearPad ? 'YERLEŞTİR' : 'BIRAK'; cls = nearPad ? 'place' : ''; }
+  if(G.carrying){ label = (nearPad || nearZone) ? 'YERLEŞTİR' : 'BIRAK'; cls = (nearPad || nearZone) ? 'place' : ''; }
+  else if(nearOnay){ label = 'ONAYLA'; cls = 'place'; }
   else if(!nearBox) cls = 'dim';
   if(act.textContent !== label) act.textContent = label;
   act.className = cls;
-  if(label === 'YERLEŞTİR') act.style.fontSize = '17px'; else act.style.fontSize = '';
+  act.style.fontSize = label.length > 6 ? '17px' : '';
 }
 const camPos = new THREE.Vector3(0, 14, 12), camLook = new THREE.Vector3();
 // Fare tekerleği ile yakınlaştırma: 0,55 (yakın) – 1,45 (uzak)
@@ -857,11 +1171,12 @@ function updateCamera(dt){
   const p = hero.position, aspect = innerWidth / innerHeight, portrait = aspect < 1;
   const fx = portrait ? .85 : (aspect < 1.5 ? .7 : .45);
   zoom += (zoomTarget - zoom) * (1 - Math.exp(-8 * dt));
-  const h = (portrait ? 18 : 13.5) * zoom, back = (portrait ? 12.5 : 10.5) * zoom;
+  const dv = G.game === 'div' && G.mode !== 'menu';
+  const h = ((portrait ? 18 : 13.5) + (dv ? 1.5 : 0)) * zoom, back = (portrait ? 12.5 : 10.5) * zoom;
   const tx = p.x * fx, tz = THREE.MathUtils.clamp(p.z, -6, 7) * .45;
   const k = 1 - Math.exp(-4 * dt);
   camPos.lerp(_tmp.set(tx, h, tz + back), k);
-  camLook.lerp(_tmp.set(tx, 0, tz - 1.6), k);
+  camLook.lerp(_tmp.set(tx, dv ? 1.2 : 0, tz - (dv ? 3.4 : 1.6)), k);
   camera.position.copy(camPos);
   if(G.shake > 0){ camera.position.x += (Math.random() - .5) * G.shake; camera.position.y += (Math.random() - .5) * G.shake; G.shake = Math.max(0, G.shake - dt * 1.4); }
   camera.lookAt(camLook);
@@ -909,22 +1224,23 @@ function toast(msg, kind = '', ms = 2200){
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = '', ms);
 }
 function renderLevelGrid(){
-  const best = store.get('ok-stars', [0, 0, 0, 0, 0]);
-  $('#levelGrid').innerHTML = LEVELS.map((l, i) =>
-    `<button class="lv" data-l="${i}">${i + 1}<span>${l.name}</span><span>${l.ex}</span><i>${'★'.repeat(best[i] || 0)}${'☆'.repeat(3 - (best[i] || 0))}</i></button>`).join('');
-  document.querySelectorAll('.lv').forEach(b => b.onclick = () => go(+b.dataset.l));
+  [['sort', '#gridSort'], ['div', '#gridDiv']].forEach(([game, sel]) => {
+    const best = store.get(MODES[game].key, [0, 0, 0, 0, 0]);
+    $(sel).innerHTML = MODES[game].levels.map((l, i) =>
+      `<button class="lv" data-g="${game}" data-l="${i}">${i + 1}<span>${l.name}</span><span>${l.ex}</span><i>${'★'.repeat(best[i] || 0)}${'☆'.repeat(3 - (best[i] || 0))}</i></button>`).join('');
+  });
+  document.querySelectorAll('.lv').forEach(b => b.onclick = () => go(b.dataset.g, +b.dataset.l));
 }
-async function go(i){
+async function go(game, i){
   ac();
   try{ await Promise.race([document.fonts.load(`800 40px 'Baloo 2'`), new Promise(r => setTimeout(r, 1500))]); }catch(e){}
-  startLevel(i);
+  startLevel(game, i);
 }
-$('#startBtn').onclick = () => go(0);
-$('#againBtn').onclick = () => go(G.level);
-$('#nextBtn').onclick = () => { if(G.level < LEVELS.length - 1) go(G.level + 1); else showMenu(); };
+$('#againBtn').onclick = () => go(G.game, G.level);
+$('#nextBtn').onclick = () => { if(G.level < curLevels().length - 1) go(G.game, G.level + 1); else showMenu(); };
 $('#menuBtn').onclick = showMenu;
 function showMenu(){
-  clearLevel(); G.mode = 'menu'; monster.position.copy(LAIR); M.state = 'idle'; G.dizzy = 0; G.frozen = false;
+  clearLevel(); G.mode = 'menu'; G.run++; sortGroup.visible = true; divGroup.visible = false; monster.position.copy(LAIR); M.state = 'idle'; G.dizzy = 0; G.frozen = false;
   renderLevelGrid(); $('#hud').classList.remove('on'); $('#done').classList.remove('on'); $('#menu').classList.add('on');
 }
 const muteBtn = $('#mute');
@@ -969,7 +1285,7 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || location.h
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
-window.__game = { G, pads, M, startLevel, action, hero, fmt, LEVELS };
+window.__game = { G, pads, M, DS, DIV, startLevel, action, hero, fmt, SORT_LEVELS, DIV_LEVELS, shifted, answerOptions };
 })();
 </script>
 </body>
