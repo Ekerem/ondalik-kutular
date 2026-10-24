@@ -1,6 +1,6 @@
 # Ondalık Kutular 📦👾
 
-Ders sonu için 3 boyutlu eğitsel oyun. Öğrenci uzay gemisindeki 5 kutuyu taşıyıp üzerlerindeki ondalık sayıları **küçükten büyüğe** sıralar. Yanlış yuvaya koyarsa yeşil canavar karakteri yakalayıp fırlatır ve bir ipucu çıkar.
+Ders sonu için 3 boyutlu eğitsel oyun (6. sınıf, ondalık gösterimler). Öğrenci uzay gemisindeki 5 kutuyu taşıyıp üzerlerindeki ondalık sayıları **küçükten büyüğe** sıralar. Yanlış yuvaya koyarsa yeşil canavar karakteri yakalayıp fırlatır ve bir ipucu çıkar.
 
 ## Seviyeler
 | # | Konu | Örnek |
@@ -9,12 +9,12 @@ Ders sonu için 3 boyutlu eğitsel oyun. Öğrenci uzay gemisindeki 5 kutuyu ta�
 | 2 | Yüzde birler | 0,4 · 0,45 |
 | 3 | Binde birler | 0,3 · 0,29 |
 | 4 | Tam kısımlı | 1,5 · 1,05 |
-| 5 | Negatifler | −0,5 · −0,45 |
+| 5 | Karışık | 0,305 · 0,35 · 1,03 |
 
 Her seviyede 5 kutu, sayılar her oyunda rastgele üretilir. Hatasız: ★★★, 1–2 hata: ★★, daha fazla: ★.
 
 ## Kontroller
-- **Bilgisayar / akıllı tahta:** WASD veya ok tuşları ile yürü, Boşluk ile AL / YERLEŞTİR / BIRAK. Fareyle zemine basılı tutarak da yürünür.
+- **Bilgisayar / akıllı tahta:** WASD veya ok tuşları ile yürü, Boşluk ile AL / YERLEŞTİR / BIRAK. Fareyle zemine basılı tutarak da yürünür. Fare tekerleği ile yakınlaştırılıp uzaklaştırılır.
 - **Tablet / telefon:** Sol alttaki joystick, sağ alttaki büyük buton.
 
 ## Dosyalar
