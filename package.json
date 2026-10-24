@@ -1,0 +1,15 @@
+{
+  "name": "ondalik-kutular",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ondalık sayıları küçükten büyüğe sıralama oyunu (3B)",
+  "scripts": {
+    "build": "python3 tools/build.py",
+    "www": "mkdir -p www && cp index.html sw.js version.json www/"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0"
+  }
+}

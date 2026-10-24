@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Ondalık Kutular</title>
+<meta name="theme-color" content="#0b1026">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1026; --panel:rgba(16,22,52,.86); --panel-solid:#141b40; --line:rgba(255,255,255,.14);
+  --text:#f3f5ff; --muted:#aab3dd; --accent:#ffb23e; --accent2:#46e07a; --danger:#ff5d6c; --blue:#5aa9ff;
+  --font:'Baloo 2','Trebuchet MS',Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);
+  user-select:none;-webkit-user-select:none;touch-action:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+button{font-family:var(--font);cursor:pointer;border:none;color:inherit}
+
+/* HUD */
+#hud{position:fixed;inset:0;pointer-events:none;display:none}
+#hud.on{display:block}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#lvl{position:absolute;left:12px;top:calc(10px + env(safe-area-inset-top));font-size:16px;line-height:1.2}
+#lvl small{display:block;font-weight:500;color:var(--muted);font-size:13px}
+#goal{position:absolute;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));
+  font-size:17px;white-space:nowrap}
+#goal b{color:var(--accent)}
+#topr{position:absolute;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;gap:8px;align-items:center;pointer-events:auto}
+#miss{color:#ffd0d4}
+.ib{background:var(--panel);border:1px solid var(--line);border-radius:12px;height:38px;min-width:38px;padding:0 10px;
+  font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px}
+.ib:active{transform:scale(.95)}
+#toast{position:absolute;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);
+  max-width:min(92vw,560px);text-align:center;font-size:17px;font-weight:700;padding:10px 18px;border-radius:16px;
+  background:var(--panel-solid);border:2px solid var(--line);opacity:0;transition:opacity .25s, transform .25s;}
+#toast.show{opacity:1}
+#toast.bad{border-color:var(--danger);color:#ffe3e6}
+#toast.good{border-color:var(--accent2);color:#e3ffe9}
+#hint{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  font-size:14px;color:var(--muted);font-weight:500;white-space:nowrap}
+
+/* Kontroller */
+#joy{position:absolute;left:calc(22px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));
+  width:136px;height:136px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);
+  pointer-events:auto;display:none;touch-action:none}
+#knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;
+  background:rgba(255,255,255,.75);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+#act{position:absolute;right:calc(22px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));
+  width:118px;height:118px;border-radius:50%;pointer-events:auto;font-size:21px;font-weight:800;letter-spacing:.5px;
+  background:radial-gradient(circle at 35% 30%,#ffd27a,#ff9d1c 60%,#d9730a);color:#3a1d00;
+  box-shadow:0 6px 0 #a35200,0 10px 24px rgba(0,0,0,.4);touch-action:none;transition:filter .15s}
+#act:active{transform:translateY(4px);box-shadow:0 2px 0 #a35200,0 6px 16px rgba(0,0,0,.4)}
+#act.dim{filter:grayscale(.85) brightness(.7)}
+#act.place{background:radial-gradient(circle at 35% 30%,#a6ffbf,#36d36a 60%,#1c9a45);color:#06331a;box-shadow:0 6px 0 #11692e,0 10px 24px rgba(0,0,0,.4)}
+
+/* Ekranlar */
+.screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(40,52,120,.75),rgba(6,9,26,.92));z-index:5;overflow:auto}
+.screen.on{display:flex}
+.card{background:var(--panel-solid);border:1px solid var(--line);border-radius:26px;padding:26px 26px 22px;
+  width:min(640px,100%);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+h1{margin:0;font-size:clamp(34px,7vw,54px);line-height:1;color:var(--accent);letter-spacing:.5px;
+  text-shadow:0 4px 0 #8a4a00}
+.sub{color:var(--muted);font-size:17px;margin:10px 0 18px;line-height:1.35}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.lv{background:#1f2858;border:2px solid var(--line);border-radius:16px;padding:10px 4px 8px;font-weight:800;font-size:24px;
+  display:flex;flex-direction:column;align-items:center;gap:2px}
+.lv span{font-size:12px;font-weight:600;color:var(--muted);line-height:1.15}
+.lv i{font-style:normal;font-size:13px;color:var(--accent);letter-spacing:1px}
+.lv:hover{border-color:var(--accent)}
+.big{background:linear-gradient(#ffc04d,#ff9b17);color:#3a1d00;font-size:22px;font-weight:800;border-radius:16px;
+  padding:12px 30px;box-shadow:0 5px 0 #a35200}
+.big:active{transform:translateY(3px);box-shadow:0 2px 0 #a35200}
+.big.alt{background:#2a346e;color:var(--text);box-shadow:0 5px 0 #161c40}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.how{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:0 0 18px;font-size:14px;color:var(--muted)}
+.how div{background:#1a224c;border-radius:12px;padding:6px 10px}
+.stars{font-size:54px;letter-spacing:6px;margin:6px 0 2px;color:#59608a}
+.stars b{color:#ffd23f;font-weight:400;text-shadow:0 0 18px rgba(255,210,63,.6)}
+.order{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:12px 0 18px;font-size:20px;font-weight:800}
+.order span{background:#1f2858;border-radius:10px;padding:4px 10px}
+.order em{font-style:normal;color:var(--muted);align-self:center}
+#modal .card{width:min(420px,100%)}
+
+#made{position:fixed;right:12px;bottom:8px;font-size:12px;opacity:.55;pointer-events:none;z-index:20;
+  font-family:var(--font);font-weight:600;letter-spacing:.3px}
+@media (max-width:640px){
+  #goal{display:none}
+  #lvl{font-size:14px} #lvl small{font-size:12px}
+  .levels{grid-template-columns:repeat(3,1fr)}
+  #act{width:100px;height:100px;font-size:18px}
+  #joy{width:120px;height:120px}
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div id="lvl" class="pill">Seviye 1/5<small>Onda birler</small></div>
+  <div id="goal" class="pill">Kutuları <b>küçükten büyüğe</b> sırala!</div>
+  <div id="topr">
+    <div id="miss" class="ib" title="Hata sayısı">✖ 0</div>
+    <button id="mute" class="ib" title="Ses">🔊</button>
+    <button id="menuBtn" class="ib" title="Menü">☰</button>
+    <button id="upd" class="ib" title="Güncelle">🔄 Güncelle</button>
+  </div>
+  <div id="toast"></div>
+  <div id="joy"><div id="knob"></div></div>
+  <button id="act">AL</button>
+  <div id="hint">Hareket: WASD / ok tuşları · Al / Bırak: Boşluk</div>
+</div>
+
+<div id="menu" class="screen on">
+  <div class="card">
+    <h1>Ondalık Kutular</h1>
+    <p class="sub">Uzay gemisindeki kutuları taşı, sayılarını <b style="color:#fff">küçükten büyüğe</b> sırala.<br>Yanlış yere koyarsan yeşil canavar seni yakalayıp fırlatır!</p>
+    <div class="how"><div>🕹️ Yürü</div><div>📦 Kutuya yaklaş → AL</div><div>🟡 Yuvaya götür → YERLEŞTİR</div></div>
+    <div class="levels" id="levelGrid"></div>
+    <div class="row"><button class="big" id="startBtn">▶ Başla</button></div>
+  </div>
+</div>
+
+<div id="done" class="screen">
+  <div class="card">
+    <h1 id="doneTitle">Seviye tamam!</h1>
+    <div class="stars" id="doneStars"></div>
+    <p class="sub" id="doneText"></p>
+    <div class="order" id="doneOrder"></div>
+    <div class="row">
+      <button class="big alt" id="againBtn">↺ Tekrar</button>
+      <button class="big" id="nextBtn">Sonraki seviye ▶</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="screen">
+  <div class="card">
+    <p class="sub" id="modalText" style="color:#fff;font-size:19px"></p>
+    <div class="row" id="modalBtns"></div>
+  </div>
+</div>
+
+<div id="made">Made by Us</div>
+
+<script>/*__THREE__*/</script>
+<script>
+const APP_VERSION = '1.0.0';
+
+(function(){
+'use strict';
+const $ = s => document.querySelector(s);
+const FONT = "'Baloo 2','Trebuchet MS',Arial,sans-serif";
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ================= SES ================= */
+let actx = null, muted = store.get('ok-muted', false);
+function ac(){
+  if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, dur, type='sine', vol=.15, when=0, slideTo=null){
+  const a = ac(); if(!a || muted) return;
+  const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .05);
+}
+function noise(dur, vol=.2, f0=800, f1=200, when=0){
+  const a = ac(); if(!a || muted) return;
+  const t = a.currentTime + when, len = Math.floor(a.sampleRate * dur);
+  const buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+  for(let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const s = a.createBufferSource(); s.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'lowpass';
+  f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  const g = a.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(f).connect(g).connect(a.destination); s.start(t); s.stop(t + dur);
+}
+const SFX = {
+  pick(){ tone(520, .12, 'square', .07, 0, 900); },
+  drop(){ tone(300, .14, 'triangle', .12, 0, 150); },
+  ok(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, .2, 'triangle', .13, i * .08)); },
+  wrong(){ tone(220, .4, 'sawtooth', .09, 0, 110); tone(233, .4, 'sawtooth', .07, 0, 116); },
+  roar(){ noise(1.0, .35, 1400, 110); tone(95, .9, 'sawtooth', .12, 0, 50); },
+  whoosh(){ noise(.7, .25, 3200, 400); },
+  thud(){ tone(130, .3, 'sine', .32, 0, 45); noise(.25, .22, 700, 90); },
+  win(){ [523, 659, 784, 659, 784, 1047].forEach((f, i) => tone(f, .24, 'triangle', .14, i * .11)); },
+  step(){ tone(170 + Math.random() * 50, .05, 'triangle', .025); }
+};
+
+/* ================= SEVİYELER ================= */
+// Değerler binde bir cinsinden tamsayı tutulur (0,45 → 450) — kayan nokta hatası olmaz.
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function uniq5(fn){
+  for(let k = 0; k < 500; k++){ const a = fn(); if(new Set(a).size === 5) return a; }
+  return [100, 200, 300, 400, 500];
+}
+const LEVELS = [
+  { name: 'Onda birler', ex: '0,3 · 0,7',
+    tip: 'Onda birler basamağına bak: rakamı büyük olan sayı daha büyüktür.',
+    gen: () => uniq5(() => { const s = new Set(); while(s.size < 5) s.add(ri(1, 9) * 100); return [...s]; }) },
+  { name: 'Yüzde birler', ex: '0,4 · 0,45',
+    tip: 'Sağına 0 ekleyip basamakları eşitle: 0,4 = 0,40 ve 0,40 < 0,45.',
+    gen: () => uniq5(() => { const d = ri(1, 8); return [d * 100, d * 100 + ri(1, 9) * 10, ri(1, 9) * 10, ri(1, 9) * 100, ri(11, 99) * 10]; }) },
+  { name: 'Binde birler', ex: '0,3 · 0,29',
+    tip: 'Hepsini binde birlere çevir: 0,3 = 0,300 ve 0,29 = 0,290.',
+    gen: () => uniq5(() => { const d = ri(2, 8); return [d * 100, (d - 1) * 100 + ri(11, 99), d * 100 + ri(1, 9), ri(10, 99), ri(101, 999)]; }) },
+  { name: 'Tam kısımlı', ex: '1,5 · 1,05',
+    tip: 'Önce tam kısımlara bak. Tam kısımlar eşitse ondalık kısmı karşılaştır.',
+    gen: () => uniq5(() => { const w = ri(1, 2) * 1000; return [w + 500, w + 50, w - ri(1, 9) * 10, w + ri(11, 49) * 10, w + 1000 + ri(1, 9) * 10]; }) },
+  { name: 'Negatifler', ex: '−0,5 · −0,45',
+    tip: 'Negatiflerde sıfıra uzak olan daha küçüktür: −0,5 < −0,45.',
+    gen: () => uniq5(() => { const d = ri(1, 8); return [-d * 100, -(d * 100 + ri(1, 9) * 10), -(1000 + ri(1, 9) * 100), ri(1, 9) * 100, -ri(1, 9) * 10]; }) }
+];
+function fmt(v){
+  const neg = v < 0, a = Math.abs(v), w = Math.floor(a / 1000);
+  const f = String(a % 1000).padStart(3, '0').replace(/0+$/, '');
+  return (neg ? '−' : '') + w + (f ? ',' + f : '');
+}
+
+/* ================= THREE KURULUM ================= */
+const canvas = $('#c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputEncoding = THREE.sRGBEncoding;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1026);
+scene.fog = new THREE.Fog(0x0b1026, 34, 70);
+const camera = new THREE.PerspectiveCamera(46, 1, .1, 200);
+camera.position.set(0, 14, 12);
+
+scene.add(new THREE.HemisphereLight(0xc8d8ff, 0x20224a, .85));
+const sun = new THREE.DirectionalLight(0xffffff, .95);
+sun.position.set(7, 16, 9); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 13, bottom: -13, near: 1, far: 50 });
+sun.shadow.bias = -.0005;
+scene.add(sun);
+
+function canvasTex(w, h, draw, repeat){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  if(repeat){ t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+  return t;
+}
+function rr(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+const std = (color, o={}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: .55, metalness: .1 }, o));
+
+/* ---------- Oda (uzay gemisi) ---------- */
+const ROOM = { w: 26, d: 18 };
+const BOUND = { x: 11.8, zMin: -7.6, zMax: 7.4 };
+(function buildRoom(){
+  const floorTex = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#3c476d'; g.fillRect(0, 0, w, h);
+    for(let i = 0; i < 2; i++) for(let j = 0; j < 2; j++){
+      const x = i * 256, y = j * 256;
+      const grd = g.createLinearGradient(x, y, x + 256, y + 256);
+      grd.addColorStop(0, '#46527c'); grd.addColorStop(1, '#384269');
+      g.fillStyle = grd; g.fillRect(x + 6, y + 6, 244, 244);
+      g.fillStyle = '#2b3355';
+      [[22,22],[234,22],[22,234],[234,234]].forEach(([a, b]) => { g.beginPath(); g.arc(x + a, y + b, 7, 0, 7); g.fill(); });
+      g.strokeStyle = 'rgba(255,255,255,.05)'; g.lineWidth = 3;
+      for(let k = 60; k < 200; k += 28){ g.beginPath(); g.moveTo(x + 60, y + k); g.lineTo(x + 196, y + k); g.stroke(); }
+    }
+  }, [ROOM.w / 4, ROOM.d / 4]);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.w, ROOM.d), std(0xffffff, { map: floorTex, roughness: .8, metalness: .2 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+  const wallMat = std(0x2a345c, { roughness: .7, metalness: .3 });
+  const trimMat = std(0x5aa9ff, { emissive: 0x2a6cff, emissiveIntensity: .6 });
+  const back = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w + 1, 4.2, 1), wallMat);
+  back.position.set(0, 2.1, -ROOM.d / 2 - .5); back.receiveShadow = true; scene.add(back);
+  [-1, 1].forEach(s => {
+    const side = new THREE.Mesh(new THREE.BoxGeometry(1, 1.6, ROOM.d + 1), wallMat);
+    side.position.set(s * (ROOM.w / 2 + .5), .8, 0); side.receiveShadow = side.castShadow = true; scene.add(side);
+    const tr = new THREE.Mesh(new THREE.BoxGeometry(1.04, .12, ROOM.d + 1), trimMat);
+    tr.position.set(s * (ROOM.w / 2 + .5), 1.62, 0); scene.add(tr);
+  });
+  const front = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w + 2, .5, 1), wallMat);
+  front.position.set(0, .25, ROOM.d / 2 + .5); scene.add(front);
+  const ftr = new THREE.Mesh(new THREE.BoxGeometry(ROOM.w + 2, .1, 1.04), trimMat);
+  ftr.position.set(0, .52, ROOM.d / 2 + .5); scene.add(ftr);
+
+  // Pencere: yıldızlar ve gezegen
+  const spaceTex = canvasTex(1024, 256, (g, w, h) => {
+    const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, '#05071a'); grd.addColorStop(1, '#151a4a');
+    g.fillStyle = grd; g.fillRect(0, 0, w, h);
+    for(let i = 0; i < 260; i++){ g.fillStyle = `rgba(255,255,255,${Math.random() * .8 + .2})`;
+      g.fillRect(Math.random() * w, Math.random() * h, Math.random() < .1 ? 3 : 1.5, Math.random() < .1 ? 3 : 1.5); }
+    const pg = g.createRadialGradient(800, 120, 10, 820, 140, 90); pg.addColorStop(0, '#ffcf8a'); pg.addColorStop(1, '#c2522d');
+    g.fillStyle = pg; g.beginPath(); g.arc(820, 140, 80, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(255,220,170,.55)'; g.lineWidth = 6; g.beginPath(); g.ellipse(820, 140, 135, 26, -.25, 0, 7); g.stroke();
+    g.fillStyle = '#9bd0ff'; g.beginPath(); g.arc(170, 70, 22, 0, 7); g.fill();
+  });
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(18, 1.5), new THREE.MeshBasicMaterial({ map: spaceTex }));
+  win.position.set(0, 3.3, -ROOM.d / 2 + .01); scene.add(win);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(18.4, .14, .2), trimMat);
+  frame.position.set(0, 2.5, -ROOM.d / 2 + .05); scene.add(frame);
+
+  // Pano: KÜÇÜK → BÜYÜK
+  const bannerTex = canvasTex(1024, 128, (g, w, h) => {
+    rr(g, 4, 4, w - 8, h - 8, 30); g.fillStyle = '#121838'; g.fill(); g.lineWidth = 6; g.strokeStyle = '#ffb23e'; g.stroke();
+    g.font = `800 70px ${FONT}`; g.textBaseline = 'middle'; g.textAlign = 'center';
+    g.fillStyle = '#7df9ff'; g.fillText('KÜÇÜK', 210, 70);
+    g.fillStyle = '#ffb23e'; g.fillText('BÜYÜK', 814, 70);
+    g.strokeStyle = '#fff'; g.lineWidth = 10; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(380, 66); g.lineTo(640, 66); g.stroke();
+    g.beginPath(); g.moveTo(610, 40); g.lineTo(645, 66); g.lineTo(610, 92); g.stroke();
+  });
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(9, 1.125), new THREE.MeshBasicMaterial({ map: bannerTex }));
+  banner.position.set(0, 1.55, -ROOM.d / 2 + .02); scene.add(banner);
+
+  // Konsollar
+  const conMat = std(0x343f6c, { metalness: .4 });
+  [[-10.5, 0x46e07a], [-7.6, 0x5aa9ff], [7.6, 0xff6bd6], [10.5, 0xffb23e]].forEach(([x, col]) => {
+    const c = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.1, 1), conMat);
+    c.position.set(x, .55, -ROOM.d / 2 + .6); c.castShadow = c.receiveShadow = true; scene.add(c);
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(1.7, .5), new THREE.MeshBasicMaterial({ color: col }));
+    sc.position.set(x, .78, -ROOM.d / 2 + 1.11); sc.rotation.x = -.35; scene.add(sc);
+  });
+  // Yan duvarlarda kasalar
+  [[-12, 5.5], [-12, 4.2], [12, -2], [12, 6]].forEach(([x, z], i) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), std(i % 2 ? 0x59618f : 0x6b5d8f));
+    b.position.set(x * .99, .5, z); b.castShadow = b.receiveShadow = true; scene.add(b);
+  });
+})();
+
+/* ---------- Ok şeridi (yuvaların önünde) ---------- */
+const PAD_Z = -5.2, PAD_X = [-6, -3, 0, 3, 6];
+(function arrowStrip(){
+  const t = canvasTex(1024, 96, (g, w, h) => {
+    const grd = g.createLinearGradient(0, 0, w, 0); grd.addColorStop(0, '#2ec6ff'); grd.addColorStop(1, '#ffb23e');
+    g.fillStyle = grd; g.globalAlpha = .9;
+    g.beginPath(); g.moveTo(10, 36); g.lineTo(930, 36); g.lineTo(930, 12); g.lineTo(1014, 48); g.lineTo(930, 84); g.lineTo(930, 60); g.lineTo(10, 60); g.closePath(); g.fill();
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(15.5, 1.45), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(0, .015, PAD_Z + 1.6); scene.add(m);
+})();
+
+/* ---------- Yuvalar ---------- */
+const pads = PAD_X.map((x, i) => {
+  const top = canvasTex(256, 256, (g, w, h) => {
+    const grd = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+    grd.addColorStop(0, '#2b3570'); grd.addColorStop(1, '#151b40'); g.fillStyle = grd; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.setLineDash([18, 12]); g.lineWidth = 8;
+    g.beginPath(); g.arc(128, 128, 100, 0, 7); g.stroke(); g.setLineDash([]);
+    g.font = `800 120px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(255,255,255,.85)';
+    g.fillText(String(i + 1), 128, 140);
+  });
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.1, .16, 48), std(0x5b6798, { metalness: .5 }));
+  mesh.position.set(x, .08, PAD_Z); mesh.receiveShadow = true; scene.add(mesh);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(.99, 48), std(0xffffff, { map: top }));
+  face.rotation.x = -Math.PI / 2; face.position.set(x, .162, PAD_Z); face.receiveShadow = true; scene.add(face);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.12, 1.32, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .35, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.position.set(x, .02, PAD_Z); scene.add(ring);
+  // Etiket
+  if(i === 0 || i === 4){
+    const lt = canvasTex(256, 64, (g) => { g.font = `800 44px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = i === 0 ? '#7df9ff' : '#ffb23e'; g.fillText(i === 0 ? 'en küçük' : 'en büyük', 128, 34); });
+    const lab = new THREE.Mesh(new THREE.PlaneGeometry(2.2, .55), new THREE.MeshBasicMaterial({ map: lt, transparent: true, depthWrite: false }));
+    lab.rotation.x = -Math.PI / 2; lab.position.set(x, .02, PAD_Z - 1.55); scene.add(lab);
+  }
+  return { index: i, x, z: PAD_Z, mesh, ring, box: null, flash: 0, flashColor: 0xffffff };
+});
+
+/* ---------- Canavar yuvası ---------- */
+const LAIR = new THREE.Vector3(-10.2, 0, -5.6);
+(function lair(){
+  const t = canvasTex(256, 256, (g, w, h) => {
+    g.save(); g.beginPath(); g.arc(128, 128, 124, 0, 7); g.clip();
+    for(let i = -10; i < 20; i++){ g.fillStyle = i % 2 ? '#ffcc00' : '#1b1b1b'; g.beginPath();
+      g.moveTo(i * 28, 0); g.lineTo(i * 28 + 28, 0); g.lineTo(i * 28 + 28 - 256, 256); g.lineTo(i * 28 - 256, 256); g.fill(); }
+    g.fillStyle = '#0c1a10'; g.beginPath(); g.arc(128, 128, 92, 0, 7); g.fill();
+    g.strokeStyle = '#2b8f3c'; g.lineWidth = 6; for(let r = 30; r < 92; r += 20){ g.beginPath(); g.arc(128, 128, r, 0, 7); g.stroke(); }
+    g.restore();
+  });
+  const m = new THREE.Mesh(new THREE.CircleGeometry(1.9, 48), new THREE.MeshStandardMaterial({ map: t, roughness: .9 }));
+  m.rotation.x = -Math.PI / 2; m.position.set(LAIR.x, .012, LAIR.z); m.receiveShadow = true; scene.add(m);
+})();
+
+/* ---------- Kahraman (özgün robot astronot "Bıdık") ---------- */
+function makeHero(){
+  const g = new THREE.Group();
+  const orange = std(0xff8a26, { roughness: .4 }), dark = std(0x23284a, { roughness: .45 });
+  const body = new THREE.Mesh(new THREE.SphereGeometry(.62, 32, 24), orange);
+  body.scale.set(1, 1.05, .95); body.position.y = .86; body.castShadow = true; g.add(body);
+  const screen = new THREE.Mesh(new THREE.SphereGeometry(.64, 32, 16, Math.PI / 2 - .62, 1.24, .95, .95),
+    std(0x0f1430, { roughness: .15, metalness: .4 }));
+  body.add(screen);
+  const eyeM = new THREE.MeshBasicMaterial({ color: 0x8ff7ff });
+  const eyes = [-1, 1].map(s => { const e = new THREE.Mesh(new THREE.SphereGeometry(.085, 16, 12), eyeM);
+    e.scale.set(1, 1.45, .6); e.position.set(s * .17, .02, .62); body.add(e); return e; });
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(.1, .022, 8, 20, Math.PI), eyeM);
+  smile.rotation.z = Math.PI; smile.position.set(0, -.17, .615); body.add(smile);
+  const stalk = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .34, 8), dark);
+  stalk.position.set(0, .78, 0); body.add(stalk);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(.1, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffe14d }));
+  ball.position.set(0, .97, 0); body.add(ball);
+  const band = new THREE.Mesh(new THREE.TorusGeometry(.6, .05, 10, 40), dark);
+  band.rotation.x = Math.PI / 2; band.position.y = -.28; body.add(band);
+  const feet = [-1, 1].map(s => { const f = new THREE.Mesh(new THREE.SphereGeometry(.2, 16, 12), dark);
+    f.scale.set(1, .6, 1.35); f.position.set(s * .26, .12, .04); f.castShadow = true; g.add(f); return f; });
+  const arms = [-1, 1].map(s => { const a = new THREE.Mesh(new THREE.SphereGeometry(.16, 16, 12), orange);
+    a.position.set(s * .64, .8, 0); a.castShadow = true; g.add(a); return a; });
+  // Baş dönmesi yıldızları
+  const stars = new THREE.Group(); stars.visible = false; g.add(stars);
+  for(let i = 0; i < 3; i++){ const s = new THREE.Mesh(new THREE.OctahedronGeometry(.12), new THREE.MeshBasicMaterial({ color: 0xffe14d }));
+    stars.add(s); }
+  g.userData = { body, feet, arms, eyes, stars, ball };
+  return g;
+}
+const hero = makeHero(); scene.add(hero);
+const heroShadowRing = new THREE.Mesh(new THREE.RingGeometry(.55, .7, 32), new THREE.MeshBasicMaterial({ color: 0xffb23e, transparent: true, opacity: .0, depthWrite: false }));
+heroShadowRing.rotation.x = -Math.PI / 2; scene.add(heroShadowRing);
+
+/* ---------- Yeşil canavar ---------- */
+function makeMonster(){
+  const g = new THREE.Group();
+  const green = std(0x3fdc4c, { roughness: .35, emissive: 0x0b3d10, emissiveIntensity: .6 });
+  const dgreen = std(0x1f8a2c, { roughness: .4 });
+  const bodyG = new THREE.Group(); bodyG.position.y = 1.15; g.add(bodyG);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(1.15, 36, 28), green); body.scale.set(1, .95, .95); body.castShadow = true; bodyG.add(body);
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(.8, 28, 20), std(0x9cff8a, { roughness: .5 }));
+  belly.scale.set(1, .9, .5); belly.position.set(0, -.3, .66); bodyG.add(belly);
+  const eyeW = new THREE.Mesh(new THREE.SphereGeometry(.4, 28, 20), std(0xffffff, { roughness: .2 }));
+  eyeW.position.set(0, .42, .86); bodyG.add(eyeW);
+  const iris = new THREE.Mesh(new THREE.SphereGeometry(.2, 20, 16), std(0xff3b3b, { emissive: 0x550000 }));
+  iris.position.set(0, .42, 1.15); bodyG.add(iris);
+  const pupil = new THREE.Mesh(new THREE.SphereGeometry(.1, 16, 12), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+  pupil.position.set(0, .42, 1.3); bodyG.add(pupil);
+  const mouth = new THREE.Mesh(new THREE.SphereGeometry(.45, 24, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3a0610 }));
+  mouth.scale.set(1.2, .7, .5); mouth.position.set(0, -.12, .98); mouth.rotation.x = -.15; bodyG.add(mouth);
+  for(let i = 0; i < 5; i++){ const t = new THREE.Mesh(new THREE.ConeGeometry(.07, .18, 8), std(0xffffff));
+    t.rotation.x = Math.PI; t.position.set(-.36 + i * .18, -.17, 1.18 - Math.abs(i - 2) * .05); bodyG.add(t); }
+  [-1, 1].forEach(s => { const h = new THREE.Mesh(new THREE.ConeGeometry(.17, .55, 12), dgreen);
+    h.position.set(s * .55, 1.0, .1); h.rotation.z = -s * .45; bodyG.add(h); });
+  for(let i = 0; i < 4; i++){ const sp = new THREE.Mesh(new THREE.ConeGeometry(.12, .35, 8), dgreen);
+    sp.position.set(0, .9 - i * .45, -.9 + i * .05); sp.rotation.x = -1.0 - i * .25; bodyG.add(sp); }
+  const arms = [-1, 1].map(s => { const pivot = new THREE.Group(); pivot.position.set(s * 1.05, 1.35, .1); g.add(pivot);
+    const a = new THREE.Mesh(new THREE.CapsuleGeometry(.19, .85, 6, 12), green); a.position.y = -.55; a.castShadow = true; pivot.add(a);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(.27, 16, 12), green); hand.position.y = -1.08; pivot.add(hand);
+    pivot.rotation.z = s * .35; return pivot; });
+  const feet = [-1, 1].map(s => { const f = new THREE.Mesh(new THREE.SphereGeometry(.34, 16, 12), dgreen);
+    f.scale.set(1, .55, 1.3); f.position.set(s * .5, .17, .15); f.castShadow = true; g.add(f); return f; });
+  g.userData = { bodyG, arms, feet, iris, pupil };
+  return g;
+}
+const monster = makeMonster(); monster.position.copy(LAIR); monster.rotation.y = .7; scene.add(monster);
+
+/* ---------- Kutular ---------- */
+const BOX_COLORS = ['#ff6b6b', '#ffa94d', '#ffd43b', '#69db7c', '#4dabf7', '#9775fa', '#f783ac', '#38d9a9'];
+const boxGeo = new THREE.BoxGeometry(1.1, 1.1, 1.1);
+function boxTex(text, color){
+  return canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = color; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(0, 0, w, 16); g.fillRect(0, h - 16, w, 16); g.fillRect(0, 0, 16, h); g.fillRect(w - 16, 0, 16, h);
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(16, 16, w - 32, 6);
+    rr(g, 22, 58, 212, 140, 24); g.fillStyle = '#ffffff'; g.fill();
+    g.lineWidth = 6; g.strokeStyle = 'rgba(0,0,0,.2)'; g.stroke();
+    let size = 104; g.font = `800 ${size}px ${FONT}`;
+    while(g.measureText(text).width > 196 && size > 40){ size -= 4; g.font = `800 ${size}px ${FONT}`; }
+    g.fillStyle = '#1b1f3a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 128, 136);
+  });
+}
+function makeBox(value, color){
+  const tex = boxTex(fmt(value), color);
+  const mesh = new THREE.Mesh(boxGeo, std(0xffffff, { map: tex, roughness: .6, metalness: .05 }));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.85, 1.02, 32), new THREE.MeshBasicMaterial({ color: 0xffe14d, transparent: true, opacity: 0, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; scene.add(ring);
+  scene.add(mesh);
+  return { value, mesh, ring, state: 'ground', pad: null, locked: false, home: new THREE.Vector3() };
+}
+
+/* ---------- Konfeti ---------- */
+const confetti = [];
+const confGeo = new THREE.PlaneGeometry(.16, .1);
+function burst(pos, colors, n = 40){
+  for(let i = 0; i < n; i++){
+    const m = new THREE.Mesh(confGeo, new THREE.MeshBasicMaterial({ color: colors[i % colors.length], side: THREE.DoubleSide }));
+    m.position.copy(pos);
+    const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 4;
+    confetti.push({ m, v: new THREE.Vector3(Math.cos(a) * s * .6, 4 + Math.random() * 4, Math.sin(a) * s * .6),
+      r: new THREE.Vector3(Math.random() * 8, Math.random() * 8, 0), life: 1.4 + Math.random() * .6 });
+    scene.add(m);
+  }
+}
+
+/* ================= OYUN DURUMU ================= */
+const G = {
+  mode: 'menu', level: 0, values: [], sorted: [], boxes: [], carrying: null, mistakes: 0,
+  dizzy: 0, frozen: false, shake: 0, facing: new THREE.Vector3(0, 0, 1), stepT: 0, walkT: 0
+};
+const tweens = [];
+function tween(dur, update, done){ tweens.push({ t: 0, dur, update, done }); }
+const ease = k => k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+
+function clearLevel(){
+  G.boxes.forEach(b => { scene.remove(b.mesh); scene.remove(b.ring); b.mesh.material.map.dispose(); b.mesh.material.dispose(); });
+  G.boxes = []; G.carrying = null;
+  pads.forEach(p => { p.box = null; p.flash = 0; });
+  tweens.length = 0;
+}
+function freeSpot(minDist = 2.3, avoidPlayer = true){
+  for(let k = 0; k < 200; k++){
+    const p = new THREE.Vector3(ri(-95, 95) / 10, 0, ri(-5, 60) / 10);
+    if(G.boxes.some(b => b.state === 'ground' && b.mesh.position.distanceTo(new THREE.Vector3(p.x, b.mesh.position.y, p.z)) < minDist)) continue;
+    if(avoidPlayer && Math.hypot(p.x - hero.position.x, p.z - hero.position.z) < 2) continue;
+    if(Math.hypot(p.x - LAIR.x, p.z - LAIR.z) < 2.6) continue;
+    return p;
+  }
+  return new THREE.Vector3(ri(-80, 80) / 10, 0, ri(0, 50) / 10);
+}
+function startLevel(i){
+  clearLevel();
+  G.level = i; G.mistakes = 0; G.mode = 'play'; G.dizzy = 0; G.frozen = false;
+  hero.position.set(0, 0, 1.2); hero.rotation.set(0, Math.PI, 0);
+  monster.position.copy(LAIR); M.state = 'idle';
+  G.values = LEVELS[i].gen();
+  G.sorted = [...G.values].sort((a, b) => a - b);
+  const cols = [...BOX_COLORS].sort(() => Math.random() - .5);
+  G.values.forEach((v, k) => {
+    const b = makeBox(v, cols[k]);
+    G.boxes.push(b);
+    const p = freeSpot();
+    b.mesh.position.set(p.x, .55, p.z); b.mesh.rotation.y = (Math.random() - .5) * .5; b.home.copy(b.mesh.position);
+  });
+  $('#lvl').innerHTML = `Seviye ${i + 1}/5<small>${LEVELS[i].name}</small>`;
+  updateMiss();
+  ['#menu', '#done'].forEach(s => $(s).classList.remove('on'));
+  $('#hud').classList.add('on');
+  toast(`Seviye ${i + 1}: ${LEVELS[i].name}. Kutuları küçükten büyüğe sırala!`, '', 2600);
+}
+function updateMiss(){ $('#miss').textContent = '✖ ' + G.mistakes; }
+
+/* ---------- Etkileşim ---------- */
+let nearBox = null, nearPad = null;
+function findTargets(){
+  nearBox = null; nearPad = null;
+  if(G.mode !== 'play' || G.frozen || G.dizzy > 0) return;
+  const hp = hero.position;
+  if(!G.carrying){
+    let best = 1.8;
+    G.boxes.forEach(b => { if(b.state !== 'ground') return;
+      const d = Math.hypot(b.mesh.position.x - hp.x, b.mesh.position.z - hp.z); if(d < best){ best = d; nearBox = b; } });
+  } else {
+    let best = 2.0;
+    pads.forEach(p => { if(p.box) return; const d = Math.hypot(p.x - hp.x, p.z - hp.z); if(d < best){ best = d; nearPad = p; } });
+  }
+}
+function action(){
+  ac();
+  if(G.mode !== 'play' || G.frozen || G.dizzy > 0) return;
+  findTargets();
+  if(!G.carrying && nearBox){
+    const b = nearBox; b.state = 'carried'; G.carrying = b; SFX.pick();
+  } else if(G.carrying && nearPad){
+    placeOnPad(G.carrying, nearPad);
+  } else if(G.carrying){
+    dropBox(G.carrying);
+  }
+}
+function dropBox(b){
+  const p = hero.position.clone().addScaledVector(G.facing, 1.25);
+  p.x = THREE.MathUtils.clamp(p.x, -BOUND.x + .3, BOUND.x - .3); p.z = THREE.MathUtils.clamp(p.z, BOUND.zMin + .3, BOUND.zMax - .3);
+  // Başka kutuyla çakışırsa biraz kaydır
+  for(let k = 0; k < 12; k++){
+    const hit = G.boxes.find(o => o !== b && o.state === 'ground' && Math.hypot(o.mesh.position.x - p.x, o.mesh.position.z - p.z) < 1.2);
+    if(!hit) break; p.x += (Math.random() - .5) * 1.4; p.z += (Math.random() - .5) * 1.4;
+  }
+  const from = b.mesh.position.clone();
+  b.state = 'moving'; G.carrying = null;
+  tween(.22, k => { b.mesh.position.lerpVectors(from, new THREE.Vector3(p.x, .55, p.z), k); b.mesh.position.y = THREE.MathUtils.lerp(from.y, .55, k * k); },
+    () => { b.state = 'ground'; SFX.drop(); });
+}
+function placeOnPad(b, pad){
+  G.carrying = null; b.state = 'moving'; b.pad = pad; pad.box = b;
+  const from = b.mesh.position.clone(), to = new THREE.Vector3(pad.x, .71, pad.z);
+  const r0 = b.mesh.rotation.y;
+  tween(.3, k => { const e = ease(k); b.mesh.position.lerpVectors(from, to, e); b.mesh.position.y += Math.sin(Math.PI * k) * .6; b.mesh.rotation.y = r0 * (1 - e); },
+    () => { b.state = 'pad'; SFX.drop(); judge(b, pad); });
+}
+function judge(b, pad){
+  const correct = G.sorted[pad.index] === b.value;
+  if(correct){
+    b.locked = true; pad.flashColor = 0x46e07a; pad.flash = 99;
+    SFX.ok(); burst(new THREE.Vector3(pad.x, 1.4, pad.z), [0x46e07a, 0xffe14d, 0x5aa9ff, 0xff6bd6], 34);
+    const left = pads.filter(p => !(p.box && p.box.locked)).length;
+    if(left === 0) levelComplete();
+    else toast(['Harika! ✓', 'Doğru! ✓', 'Süper! ✓', 'Aferin! ✓'][ri(0, 3)], 'good', 1200);
+  } else {
+    G.mistakes++; updateMiss();
+    pad.flashColor = 0xff3b4f; pad.flash = 1.6;
+    SFX.wrong();
+    toast(`${fmt(b.value)} buraya ait değil! Canavar geliyor! 👾`, 'bad', 2200);
+    monsterAttack(b, pad);
+  }
+}
+
+/* ---------- Canavar saldırısı ---------- */
+const M = { state: 'idle', t: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), wrongBox: null, wrongPad: null };
+function monsterAttack(box, pad){
+  G.frozen = true; G.mode = 'caught';
+  M.wrongBox = box; M.wrongPad = pad;
+  M.state = 'roar'; M.t = 0; SFX.roar();
+}
+function throwTarget(){
+  let best = null, bestD = -1;
+  for(let k = 0; k < 30; k++){
+    const p = new THREE.Vector3(ri(-100, 100) / 10, 0, ri(5, 65) / 10);
+    const d = p.distanceTo(monster.position);
+    if(d > bestD && d < 16){ bestD = d; best = p; }
+  }
+  return best || new THREE.Vector3(6, 0, 5);
+}
+function updateMonster(dt, time){
+  const u = monster.userData, hp = hero.position;
+  const look = (tx, tz, rate = 8) => { const a = Math.atan2(tx - monster.position.x, tz - monster.position.z);
+    let d = a - monster.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); monster.rotation.y += d * Math.min(1, rate * dt); };
+  const walk = (speed) => { u.bodyG.position.y = 1.15 + Math.abs(Math.sin(time * speed)) * .25;
+    u.feet[0].position.z = .15 + Math.sin(time * speed) * .35; u.feet[1].position.z = .15 - Math.sin(time * speed) * .35; };
+  M.t += dt;
+  // göz oyuncuyu izler
+  u.pupil.position.x = u.iris.position.x = THREE.MathUtils.clamp((hp.x - monster.position.x) * .02, -.08, .08);
+
+  if(M.state === 'idle'){
+    look(hp.x, hp.z, 3);
+    u.bodyG.position.y = 1.15 + Math.sin(time * 2) * .06;
+    u.bodyG.scale.set(1 + Math.sin(time * 2) * .03, 1 - Math.sin(time * 2) * .03, 1);
+    u.arms.forEach((a, i) => a.rotation.z = (i ? 1 : -1) * (.35 + Math.sin(time * 2 + i) * .08));
+  } else if(M.state === 'roar'){
+    look(hp.x, hp.z, 10);
+    const s = 1 + Math.sin(Math.min(M.t / .6, 1) * Math.PI) * .25;
+    u.bodyG.scale.set(s, s, s);
+    u.arms.forEach((a, i) => a.rotation.z = (i ? 1 : -1) * (.35 + Math.sin(M.t * 30) * .3));
+    G.shake = Math.max(G.shake, .15);
+    if(M.t > .7){ M.state = 'chase'; M.t = 0; u.bodyG.scale.set(1, 1, 1); }
+  } else if(M.state === 'chase'){
+    look(hp.x, hp.z, 12);
+    const dx = hp.x - monster.position.x, dz = hp.z - monster.position.z, d = Math.hypot(dx, dz);
+    const sp = 11 * dt;
+    if(d > 1.7){ monster.position.x += dx / d * Math.min(sp, d - 1.7); monster.position.z += dz / d * Math.min(sp, d - 1.7); walk(16); }
+    else { M.state = 'grab'; M.t = 0; M.from.copy(hp); }
+    if(M.t > 6){ M.state = 'grab'; M.t = 0; M.from.copy(hp); }
+  } else if(M.state === 'grab'){
+    const k = Math.min(M.t / .5, 1), e = ease(k);
+    u.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * (.35 + e * 2.3); a.rotation.x = -e * .4; });
+    const fwd = new THREE.Vector3(Math.sin(monster.rotation.y), 0, Math.cos(monster.rotation.y));
+    const hold = monster.position.clone().addScaledVector(fwd, .9); hold.y = 2.9;
+    hero.position.lerpVectors(M.from, hold, e);
+    hero.rotation.z = Math.sin(M.t * 40) * .25 * e;
+    hero.userData.feet.forEach((f, i) => f.position.y = .12 + Math.sin(M.t * 50 + i * 3) * .08);
+    if(k >= 1){
+      M.state = 'throw'; M.t = 0; M.from.copy(hero.position); M.to.copy(throwTarget()); SFX.whoosh();
+      // yanlış kutu yuvadan fırlar
+      const b = M.wrongBox, pad = M.wrongPad;
+      if(b){ pad.box = null; b.pad = null; b.state = 'moving';
+        const f = b.mesh.position.clone(), t = freeSpot(2.3, false);
+        tween(.9, kk => { b.mesh.position.lerpVectors(f, new THREE.Vector3(t.x, .55, t.z), kk); b.mesh.position.y = THREE.MathUtils.lerp(f.y, .55, kk) + Math.sin(Math.PI * kk) * 3; b.mesh.rotation.x = kk * Math.PI * 2; },
+          () => { b.mesh.rotation.x = 0; b.state = 'ground'; });
+        M.wrongBox = null; }
+    }
+  } else if(M.state === 'throw'){
+    const k = Math.min(M.t / 1.15, 1);
+    u.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * (2.65 - k * 2.3); a.rotation.x = -.4 + k * 1.4; });
+    hero.position.lerpVectors(M.from, M.to, k);
+    hero.position.y = THREE.MathUtils.lerp(M.from.y, 0, k) + Math.sin(Math.PI * k) * 6.5;
+    hero.rotation.x = k * Math.PI * 4; hero.rotation.z = 0;
+    if(k >= 1){
+      hero.rotation.x = 0; hero.position.y = 0; SFX.thud(); G.shake = .55;
+      burst(hero.position.clone().setY(.3), [0x8a93c0, 0xcfd6ff], 18);
+      G.dizzy = 1.5; G.frozen = false; G.mode = 'play';
+      M.state = 'return'; M.t = 0;
+      setTimeout(() => { if(G.mode === 'play') toast('İpucu: ' + LEVELS[G.level].tip, '', 4200); }, 500);
+    }
+  } else if(M.state === 'return'){
+    u.arms.forEach((a, i) => { a.rotation.z = (i ? 1 : -1) * .35; a.rotation.x = 0; });
+    look(LAIR.x, LAIR.z, 6);
+    const dx = LAIR.x - monster.position.x, dz = LAIR.z - monster.position.z, d = Math.hypot(dx, dz);
+    if(d > .1){ const sp = Math.min(4.5 * dt, d); monster.position.x += dx / d * sp; monster.position.z += dz / d * sp; walk(9); }
+    else { M.state = 'idle'; u.feet[0].position.z = u.feet[1].position.z = .15; }
+  }
+}
+
+/* ---------- Seviye sonu ---------- */
+function levelComplete(){
+  G.mode = 'levelDone';
+  SFX.win();
+  pads.forEach((p, i) => setTimeout(() => burst(new THREE.Vector3(p.x, 1.6, p.z), [0xffe14d, 0xff6bd6, 0x5aa9ff, 0x46e07a], 26), i * 120));
+  const stars = G.mistakes === 0 ? 3 : G.mistakes <= 2 ? 2 : 1;
+  const best = store.get('ok-stars', [0, 0, 0, 0, 0]);
+  best[G.level] = Math.max(best[G.level] || 0, stars); store.set('ok-stars', best);
+  setTimeout(() => {
+    const last = G.level === LEVELS.length - 1;
+    $('#doneTitle').textContent = last ? 'Tebrikler! 🎉' : `Seviye ${G.level + 1} tamam!`;
+    $('#doneStars').innerHTML = '<b>★</b>'.repeat(stars) + '★'.repeat(3 - stars);
+    const total = best.reduce((a, b) => a + b, 0);
+    $('#doneText').innerHTML = (G.mistakes === 0 ? 'Hiç hata yapmadın, canavar aç kaldı!' : `${G.mistakes} hata yaptın.`) +
+      (last ? `<br>Tüm seviyeleri bitirdin! Toplam yıldız: <b style="color:#ffd23f">${total} / 15</b>` : '');
+    $('#doneOrder').innerHTML = G.sorted.map(v => `<span>${fmt(v)}</span>`).join('<em>&lt;</em>');
+    $('#nextBtn').textContent = last ? '☰ Menü' : 'Sonraki seviye ▶';
+    $('#done').classList.add('on'); $('#hud').classList.remove('on');
+  }, 1300);
+}
+
+/* ================= GİRİŞ ================= */
+const keys = {};
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if([' ', 'e', 'enter'].includes(k)){ if(!e.repeat && G.mode === 'play'){ action(); } e.preventDefault(); return; }
+  keys[k] = true; if(k.startsWith('arrow')) e.preventDefault();
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+addEventListener('blur', () => { for(const k in keys) keys[k] = false; });
+
+const joy = { id: null, x: 0, y: 0, cx: 0, cy: 0 };
+const joyEl = $('#joy'), knob = $('#knob');
+const coarse = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+if(coarse){ joyEl.style.display = 'block'; $('#hint').style.display = 'none'; }
+function joyMove(e){
+  let dx = e.clientX - joy.cx, dy = e.clientY - joy.cy; const max = joyEl.clientWidth * .38, l = Math.hypot(dx, dy);
+  if(l > max){ dx *= max / l; dy *= max / l; }
+  knob.style.transform = `translate(${dx}px,${dy}px)`; joy.x = dx / max; joy.y = dy / max;
+}
+function joyEnd(){ joy.id = null; joy.x = joy.y = 0; knob.style.transform = ''; }
+joyEl.addEventListener('pointerdown', e => { ac(); joy.id = e.pointerId; joyEl.setPointerCapture(e.pointerId);
+  const r = joyEl.getBoundingClientRect(); joy.cx = r.left + r.width / 2; joy.cy = r.top + r.height / 2; joyMove(e); e.preventDefault(); });
+joyEl.addEventListener('pointermove', e => { if(e.pointerId === joy.id) joyMove(e); });
+joyEl.addEventListener('pointerup', joyEnd); joyEl.addEventListener('pointercancel', joyEnd);
+$('#act').addEventListener('pointerdown', e => { e.preventDefault(); action(); });
+// Dokunmatik olmayan cihazda da ekrana basılı tutarak yürüme (fare ile)
+let mouseDrag = null;
+canvas.addEventListener('pointerdown', e => { ac(); if(G.mode === 'play') mouseDrag = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
+addEventListener('pointermove', e => { if(mouseDrag && e.pointerId === mouseDrag.id){ mouseDrag.x = e.clientX; mouseDrag.y = e.clientY; } });
+addEventListener('pointerup', e => { if(mouseDrag && e.pointerId === mouseDrag.id) mouseDrag = null; });
+const _v = new THREE.Vector3();
+function mouseDir(){
+  if(!mouseDrag) return null;
+  // Ekrandaki noktayı zemine izdüşür, oraya doğru yürü
+  const ndc = new THREE.Vector2(mouseDrag.x / innerWidth * 2 - 1, -(mouseDrag.y / innerHeight) * 2 + 1);
+  const ray = new THREE.Raycaster(); ray.setFromCamera(ndc, camera);
+  const t = -ray.ray.origin.y / ray.ray.direction.y; if(!(t > 0)) return null;
+  _v.copy(ray.ray.origin).addScaledVector(ray.ray.direction, t);
+  const dx = _v.x - hero.position.x, dz = _v.z - hero.position.z, d = Math.hypot(dx, dz);
+  if(d < .35) return { x: 0, z: 0 };
+  return { x: dx / d, z: dz / d };
+}
+
+/* ================= ANA DÖNGÜ ================= */
+function updateHero(dt, time){
+  const u = hero.userData;
+  let ix = 0, iz = 0;
+  if(G.mode === 'play' && !G.frozen && G.dizzy <= 0){
+    if(keys['a'] || keys['arrowleft']) ix -= 1; if(keys['d'] || keys['arrowright']) ix += 1;
+    if(keys['w'] || keys['arrowup']) iz -= 1; if(keys['s'] || keys['arrowdown']) iz += 1;
+    ix += joy.x; iz += joy.y;
+    const md = mouseDir(); if(md){ ix += md.x; iz += md.z; }
+  }
+  let l = Math.hypot(ix, iz); if(l > 1){ ix /= l; iz /= l; l = 1; }
+  const speed = G.carrying ? 5.4 : 6.2;
+  if(l > .08){
+    hero.position.x += ix * speed * dt; hero.position.z += iz * speed * dt;
+    G.facing.set(ix, 0, iz).normalize();
+    const a = Math.atan2(ix, iz); let d = a - hero.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
+    hero.rotation.y += d * Math.min(1, 14 * dt);
+    G.walkT += dt * 12 * l;
+    G.stepT -= dt; if(G.stepT <= 0){ SFX.step(); G.stepT = .26; }
+  }
+  if(G.mode === 'play' || G.mode === 'levelDone'){
+    hero.position.x = THREE.MathUtils.clamp(hero.position.x, -BOUND.x, BOUND.x);
+    hero.position.z = THREE.MathUtils.clamp(hero.position.z, BOUND.zMin, BOUND.zMax);
+    // kutulardan ve canavardan it
+    G.boxes.forEach(b => { if(b.state !== 'ground' && b.state !== 'pad') return;
+      const dx = hero.position.x - b.mesh.position.x, dz = hero.position.z - b.mesh.position.z, d = Math.hypot(dx, dz);
+      if(d < 1.0 && d > .0001){ hero.position.x += dx / d * (1.0 - d); hero.position.z += dz / d * (1.0 - d); } });
+    if(M.state === 'idle'){ const dx = hero.position.x - monster.position.x, dz = hero.position.z - monster.position.z, d = Math.hypot(dx, dz);
+      if(d < 1.7 && d > .0001){ hero.position.x += dx / d * (1.7 - d); hero.position.z += dz / d * (1.7 - d); } }
+  }
+  // animasyon
+  const moving = l > .08;
+  const sw = moving ? Math.sin(G.walkT) : 0;
+  if(G.mode !== 'caught'){
+    u.body.position.y = .86 + (moving ? Math.abs(Math.sin(G.walkT)) * .1 : Math.sin(time * 2.5) * .02);
+    u.feet[0].position.z = .04 + sw * .22; u.feet[1].position.z = .04 - sw * .22;
+    u.feet[0].position.y = u.feet[1].position.y = .12;
+    u.body.rotation.z = moving ? sw * .06 : 0;
+  }
+  // kollar: kutu taşırken yukarıda
+  const up = G.carrying ? 1 : 0;
+  u.arms.forEach((a, i) => { const s = i ? 1 : -1;
+    a.position.set(s * (.64 - up * .14), .8 + up * .95, up * .12 + (moving && !up ? -s * sw * .15 : 0)); });
+  u.ball.material.color.setHSL(.13, 1, .55 + Math.sin(time * 6) * .15);
+  // baş dönmesi
+  u.stars.visible = G.dizzy > 0;
+  if(G.dizzy > 0){
+    G.dizzy -= dt;
+    u.stars.position.y = 2.05; u.stars.children.forEach((s, i) => { const a = time * 5 + i * 2.09; s.position.set(Math.cos(a) * .5, Math.sin(time * 8 + i) * .05, Math.sin(a) * .5); s.rotation.y = time * 5; });
+    u.body.rotation.z = Math.sin(time * 9) * .15;
+  }
+  // taşınan kutu
+  if(G.carrying){
+    const b = G.carrying;
+    b.mesh.position.set(hero.position.x, hero.position.y + 2.3 + Math.sin(G.walkT) * .05, hero.position.z);
+    b.mesh.rotation.set(0, hero.rotation.y * 0, 0);
+  }
+}
+function updateHighlights(dt, time){
+  findTargets();
+  G.boxes.forEach(b => {
+    b.ring.position.set(b.mesh.position.x, .02, b.mesh.position.z);
+    const target = b === nearBox ? .9 : 0; b.ring.material.opacity += (target - b.ring.material.opacity) * Math.min(1, dt * 12);
+    b.ring.scale.setScalar(1 + Math.sin(time * 6) * .05);
+  });
+  pads.forEach(p => {
+    let col = 0xffffff, op = .3;
+    if(p.box && p.box.locked){ col = 0x46e07a; op = .9; }
+    if(p.flash > 0){ p.flash -= dt; col = p.flashColor; op = .5 + Math.abs(Math.sin(time * 14)) * .5; }
+    else if(G.carrying && !p.box){ col = p === nearPad ? 0xffe14d : 0xffffff; op = p === nearPad ? .95 : .45 + Math.sin(time * 4) * .15; }
+    p.ring.material.color.setHex(col); p.ring.material.opacity = op;
+  });
+  const act = $('#act');
+  let label = 'AL', cls = '';
+  if(G.carrying){ label = nearPad ? 'YERLEŞTİR' : 'BIRAK'; cls = nearPad ? 'place' : ''; }
+  else if(!nearBox) cls = 'dim';
+  if(act.textContent !== label) act.textContent = label;
+  act.className = cls;
+  if(label === 'YERLEŞTİR') act.style.fontSize = '17px'; else act.style.fontSize = '';
+}
+const camPos = new THREE.Vector3(0, 14, 12), camLook = new THREE.Vector3();
+function updateCamera(dt){
+  const p = hero.position, aspect = innerWidth / innerHeight, portrait = aspect < 1;
+  const fx = portrait ? .85 : (aspect < 1.5 ? .7 : .45);
+  const h = portrait ? 18 : 13.5, back = portrait ? 12.5 : 10.5;
+  const tx = p.x * fx, tz = THREE.MathUtils.clamp(p.z, -6, 7) * .45;
+  const k = 1 - Math.exp(-4 * dt);
+  camPos.lerp(_tmp.set(tx, h, tz + back), k);
+  camLook.lerp(_tmp.set(tx, 0, tz - 1.6), k);
+  camera.position.copy(camPos);
+  if(G.shake > 0){ camera.position.x += (Math.random() - .5) * G.shake; camera.position.y += (Math.random() - .5) * G.shake; G.shake = Math.max(0, G.shake - dt * 1.4); }
+  camera.lookAt(camLook);
+}
+const _tmp = new THREE.Vector3();
+function resize(){
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  camera.fov = camera.aspect < 1 ? 58 : 46;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+const clock = new THREE.Clock();
+let menuSpin = 0;
+function loop(){
+  const dt = Math.min(clock.getDelta(), .05), time = clock.elapsedTime;
+  for(let i = tweens.length - 1; i >= 0; i--){ const tw = tweens[i]; tw.t += dt; const k = Math.min(tw.t / tw.dur, 1);
+    tw.update(k); if(k >= 1){ tweens.splice(i, 1); tw.done && tw.done(); } }
+  if(G.mode === 'menu'){
+    // Menüde kahraman hafifçe döner
+    menuSpin += dt; hero.position.set(0, 0, 1.2); hero.rotation.y = Math.sin(menuSpin * .6) * .6;
+    hero.userData.body.position.y = .86 + Math.sin(time * 2.5) * .03;
+  } else updateHero(dt, time);
+  updateMonster(dt, time);
+  if(G.mode === 'play') updateHighlights(dt, time);
+  heroShadowRing.position.set(hero.position.x, .02, hero.position.z);
+  heroShadowRing.material.opacity = G.mode === 'play' ? .5 : 0;
+  // kutular yuvada hafifçe parlar
+  G.boxes.forEach(b => { if(b.locked) b.mesh.material.emissive.setRGB(0, .12 + Math.sin(time * 3) * .05, 0); else b.mesh.material.emissive.setRGB(0, 0, 0); });
+  for(let i = confetti.length - 1; i >= 0; i--){ const c = confetti[i]; c.life -= dt;
+    c.v.y -= 12 * dt; c.m.position.addScaledVector(c.v, dt); c.m.rotation.x += c.r.x * dt; c.m.rotation.y += c.r.y * dt;
+    if(c.m.position.y < .05){ c.m.position.y = .05; c.v.set(0, 0, 0); }
+    if(c.life <= 0){ scene.remove(c.m); c.m.material.dispose(); confetti.splice(i, 1); } }
+  updateCamera(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ================= ARAYÜZ ================= */
+let toastTimer = null;
+function toast(msg, kind = '', ms = 2200){
+  const t = $('#toast'); t.textContent = msg; t.className = 'show ' + kind;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.className = '', ms);
+}
+function renderLevelGrid(){
+  const best = store.get('ok-stars', [0, 0, 0, 0, 0]);
+  $('#levelGrid').innerHTML = LEVELS.map((l, i) =>
+    `<button class="lv" data-l="${i}">${i + 1}<span>${l.name}</span><span>${l.ex}</span><i>${'★'.repeat(best[i] || 0)}${'☆'.repeat(3 - (best[i] || 0))}</i></button>`).join('');
+  document.querySelectorAll('.lv').forEach(b => b.onclick = () => go(+b.dataset.l));
+}
+async function go(i){
+  ac();
+  try{ await Promise.race([document.fonts.load(`800 40px 'Baloo 2'`), new Promise(r => setTimeout(r, 1500))]); }catch(e){}
+  startLevel(i);
+}
+$('#startBtn').onclick = () => go(0);
+$('#againBtn').onclick = () => go(G.level);
+$('#nextBtn').onclick = () => { if(G.level < LEVELS.length - 1) go(G.level + 1); else showMenu(); };
+$('#menuBtn').onclick = showMenu;
+function showMenu(){
+  clearLevel(); G.mode = 'menu'; monster.position.copy(LAIR); M.state = 'idle'; G.dizzy = 0; G.frozen = false;
+  renderLevelGrid(); $('#hud').classList.remove('on'); $('#done').classList.remove('on'); $('#menu').classList.add('on');
+}
+const muteBtn = $('#mute');
+function syncMute(){ muteBtn.textContent = muted ? '🔇' : '🔊'; }
+muteBtn.onclick = () => { muted = !muted; store.set('ok-muted', muted); syncMute(); };
+syncMute(); renderLevelGrid();
+
+/* ================= GÜNCELLEME ================= */
+function cmpVer(a, b){ const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for(let i = 0; i < 3; i++){ const d = (pa[i] || 0) - (pb[i] || 0); if(d) return d > 0 ? 1 : -1; } return 0; }
+const isApp = () => !!(window.Capacitor && (window.Capacitor.isNativePlatform ? window.Capacitor.isNativePlatform() : true));
+function hardReload(){ const u = new URL(location.href); u.searchParams.set('v', Date.now()); location.replace(u.toString()); }
+function modal(text, buttons){
+  $('#modalText').textContent = text;
+  const box = $('#modalBtns'); box.innerHTML = '';
+  buttons.filter(Boolean).forEach(([label, fn, alt]) => { const b = document.createElement('button'); b.className = 'big' + (alt ? ' alt' : '');
+    b.textContent = label; b.onclick = () => { $('#modal').classList.remove('on'); fn && fn(); }; box.appendChild(b); });
+  $('#modal').classList.add('on');
+}
+$('#upd').onclick = async () => {
+  const btn = $('#upd'); btn.disabled = true; toast('Güncelleme kontrol ediliyor…', '', 1500);
+  try{
+    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    if(!r.ok) throw new Error('yok');
+    const v = await r.json();
+    if(cmpVer(v.version, APP_VERSION) > 0){
+      if(isApp()) modal(`Yeni sürüm var: ${v.version}`, [['Şimdi güncelle', hardReload], v.apk ? ['Yeni APK’yı indir', () => window.open(v.apk, '_system'), true] : null, ['Sonra', null, true]]);
+      else { toast(`Yeni sürüm (${v.version}) yükleniyor…`, 'good', 3000); setTimeout(hardReload, 700); }
+    } else toast(`Uygulama güncel ✓ (${APP_VERSION})`, 'good', 2200);
+  }catch(e){ toast('Güncelleme kontrol edilemedi. İnternet bağlantını kontrol et.', 'bad', 3000); }
+  finally{ btn.disabled = false; }
+};
+// Menüde de güncelle butonu görünsün diye üst sağ çubuğu menüye kopyalamak yerine HUD dışına da ekliyoruz
+const updMenu = document.createElement('button'); updMenu.className = 'ib'; updMenu.textContent = '🔄 Güncelle';
+updMenu.style.cssText = 'position:fixed;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:6';
+updMenu.onclick = () => $('#upd').onclick();
+document.body.appendChild(updMenu);
+const syncUpdMenu = () => { updMenu.style.display = $('#hud').classList.contains('on') ? 'none' : 'flex'; };
+new MutationObserver(syncUpdMenu).observe($('#hud'), { attributes: true }); syncUpdMenu();
+
+if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+window.__game = { G, pads, M, startLevel, action, hero, fmt, LEVELS };
+})();
+</script>
+</body>
+</html>

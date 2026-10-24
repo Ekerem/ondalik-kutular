@@ -1,0 +1,9 @@
+{
+  "appId": "com.madebyus.ondalikkutular",
+  "appName": "Ondalık Kutular",
+  "webDir": "www",
+  "server": {
+    "url": "https://__OWNER__.github.io/ondalik-kutular/",
+    "androidScheme": "https"
+  }
+}
