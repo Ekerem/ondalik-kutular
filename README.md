@@ -1,8 +1,23 @@
 # Ondalık Kutular 📦👾
 
-Ders sonu için 3 boyutlu eğitsel oyun (6. sınıf, ondalık gösterimler). Öğrenci uzay gemisindeki 5 kutuyu taşıyıp üzerlerindeki ondalık sayıları **küçükten büyüğe** sıralar. Yanlış yuvaya koyarsa yeşil canavar karakteri yakalayıp fırlatır ve bir ipucu çıkar.
+Ders sonu için 3 boyutlu eğitsel oyun (6. ve 7. sınıf, ondalık gösterimler ve rasyonel sayılar). Öğrenci uzay gemisindeki 5 kutuyu taşıyıp üzerlerindeki ondalık sayıları **küçükten büyüğe** sıralar. Yanlış yuvaya koyarsa yeşil canavar karakteri yakalayıp fırlatır ve bir ipucu çıkar.
 
-## Bölümler
+## Menü
+Menüde **6. Sınıf** ve **7. Sınıf** sekmeleri vardır; her sınıfta **Sıralama** ve **Bölme** bölümleri bulunur. Son seçilen sınıf hatırlanır.
+
+- **6. sınıf:** aşağıdaki tablolardaki seviyeler (negatif sayı yok).
+- **7. sınıf Sıralama:** Tam kısımlı · Karışık · Negatif onda birler (−0,7 · 0,2) · Negatif yüzde birler (−0,4 · −0,45) · Karışık negatifler (−1,5 · −0,05)
+- **7. sınıf Bölme:** Onda bir ÷ onda bir · Farklı basamaklar · Negatif ÷ pozitif (−1,2 ÷ 0,4) · Negatif ÷ negatif (−0,24 ÷ −0,06) · İşaretli, ondalıklı (−0,5 ÷ 0,2 = −2,5). İşaretli sorularda cevap kutularında işaret hatası çeldiricisi de çıkar.
+
+## Görüntü ayarı (akıllı tahta)
+Menünün altındaki **Görüntü** ayarı:
+- **Otomatik** (varsayılan): çizim çözünürlüğü sınırlıdır; oyun kasarsa çözünürlük ve gölgeler kendiliğinden düşer.
+- **Hızlı:** zayıf akıllı tahtalar için; gölgeler kapalı, çözünürlük düşük.
+- **Kaliteli:** güçlü bilgisayarlar için; kenar yumuşatma ve yüksek çözünürlük.
+
+Oyun zamanı yavaş cihazlarda da gerçek zamanla ilerler (sabit adımlı simülasyon), canavar yolundaki kutuları kenara iter.
+
+## Bölümler (6. sınıf)
 
 ### Sıralama
 Öğrenci 5 kutuyu taşıyıp üzerlerindeki ondalık sayıları **küçükten büyüğe** sıralar. Yanlış yuvaya koyarsa yeşil canavar karakteri yakalayıp fırlatır ve bir ipucu çıkar.
