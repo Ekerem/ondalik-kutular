@@ -6,8 +6,8 @@ Ders sonu için 3 boyutlu eğitsel oyun (6. ve 7. sınıf, ondalık gösterimler
 Menüde **6. Sınıf** ve **7. Sınıf** sekmeleri vardır; her sınıfta **Sıralama** ve **Bölme** bölümleri bulunur. Son seçilen sınıf hatırlanır.
 
 - **6. sınıf:** aşağıdaki tablolardaki seviyeler (negatif sayı yok).
-- **7. sınıf Sıralama:** Tam kısımlı · Karışık · Negatif onda birler (−0,7 · 0,2) · Negatif yüzde birler (−0,4 · −0,45) · Karışık negatifler (−1,5 · −0,05)
-- **7. sınıf Bölme:** Onda bir ÷ onda bir · Farklı basamaklar · Negatif ÷ pozitif (−1,2 ÷ 0,4) · Negatif ÷ negatif (−0,24 ÷ −0,06) · İşaretli, ondalıklı (−0,5 ÷ 0,2 = −2,5). İşaretli sorularda cevap kutularında işaret hatası çeldiricisi de çıkar.
+- **7. sınıf Sıralama:** Karışık · Negatif onda birler (−0,7 · 0,2) · Negatif yüzde birler (−0,4 · −0,45) · Karışık negatifler (−1,5 · −0,05) · **Devirli ondalıklar** (0,3 < 0,33 < 0,3̅ < 0,34 ve negatif devirliler)
+- **7. sınıf Bölme:** Farklı basamaklar · Negatif ÷ pozitif (−1,2 ÷ 0,4) · Negatif ÷ negatif (−0,24 ÷ −0,06) · İşaretli, ondalıklı (−0,5 ÷ 0,2 = −2,5) · **Devirli sonuç** (1 ÷ 0,3 = 10 ÷ 3 = 3,3̅). Çeldiriciler: devir çizgisini unutmak (3,3 · 3,33), virgül hatası (0,3̅ · 33,3̅) ve işaret hatası.
 
 ## Görüntü ayarı (akıllı tahta)
 Menünün altındaki **Görüntü** ayarı:
