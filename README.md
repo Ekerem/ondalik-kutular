@@ -46,7 +46,7 @@ Makine ekranında bölme işlemi pay / payda olarak görünür. Öğrenci ×10 v
 Her seviyede 5 soru/kutu vardır, sayılar her oyunda rastgele üretilir ve kafadan hesaplanacak kadar küçüktür. Hatasız: ★★★, 1–2 hata: ★★, daha fazla: ★.
 
 ## Kontroller
-- **Bilgisayar / akıllı tahta:** WASD veya ok tuşları ile yürü, Boşluk ile AL / YERLEŞTİR / BIRAK. Fareyle zemine basılı tutarak da yürünür. Fare tekerleği ile yakınlaştırılıp uzaklaştırılır.
+- **Bilgisayar / akıllı tahta:** WASD veya ok tuşları ile yürü, Boşluk ile AL / YERLEŞTİR / BIRAK. Fareyle zemine basılı tutarak da yürünür. Fare tekerleği veya iki parmakla (tablet, akıllı tahta) yakınlaştırılıp uzaklaştırılır.
 - **Tablet / telefon:** Sol alttaki joystick, sağ alttaki büyük buton.
 
 ## Dosyalar
