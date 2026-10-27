@@ -26,6 +26,7 @@ jobs:
           npm run www
           sed -i "s/__OWNER__/${{ github.repository_owner }}/g" capacitor.config.json www/version.json
           npx cap add android
+          bash tools/android-patch.sh
           npx cap sync android
       - name: APK derle
         run: |

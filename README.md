@@ -49,6 +49,12 @@ Her seviyede 5 soru/kutu vardır, sayılar her oyunda rastgele üretilir ve kafa
 - **Bilgisayar / akıllı tahta:** WASD veya ok tuşları ile yürü, Boşluk ile AL / YERLEŞTİR / BIRAK. Fareyle zemine basılı tutarak da yürünür. Fare tekerleği veya iki parmakla (tablet, akıllı tahta) yakınlaştırılıp uzaklaştırılır.
 - **Tablet / telefon:** Sol alttaki joystick, sağ alttaki büyük buton.
 
+## Telefon uygulaması (APK)
+- Telefon yan çevrilince oyun da yan döner; telefonun döndürme kilidi açık olmasa da çalışır.
+- Tam ekran: üstteki durum çubuğu ve alttaki gezinme çubuğu gizlidir; ekranın kenarından kaydırınca geçici olarak görünür.
+- Kamera çentiği olan telefonlarda butonlar çentiğin altında kalmaz.
+Bu ayarlar `tools/android-patch.sh` ile APK derlenirken uygulanır. Yatay ekran (kısa ekran) için menü ve kontroller sıkılaştırılmıştır.
+
 ## Dosyalar
 - `index.html` — oyunun tamamı (Three.js içine gömülü, tek dosya). `src/index.src.html` düzenlenip `python3 tools/build.py` ile üretilir.
 - `sw.js` — çevrimdışı katman, `version.json` — güncelleme kontrolü.
